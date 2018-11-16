@@ -1,13 +1,10 @@
 //
 //  ASTextNode+Beta.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Luke on 1/25/16.
-//
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <UIKit/UIKit.h>
@@ -31,7 +28,12 @@ NS_ASSUME_NONNULL_BEGIN
  This property can be useful for handling text which does not fit within the view by default. An example: like UILabel,
  ASTextNode will clip the left and right of the string "judar" if it's rendered in an italicised font.
  */
-@property (nonatomic, assign) UIEdgeInsets textContainerInset;
+@property (nonatomic) UIEdgeInsets textContainerInset;
+
+/**
+ * Returns YES if this node is using the experimental implementation. NO otherwise. Will not change.
+ */
+@property (readonly) BOOL usingExperiment;
 
 @end
 

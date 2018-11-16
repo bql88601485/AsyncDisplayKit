@@ -1,16 +1,13 @@
 //
 //  ASDimension.mm
-//  AsyncDisplayKit
+//  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASDimension.h>
-
-#import <UIKit/UIGeometry.h>
 
 #import <AsyncDisplayKit/CoreGraphics+ASConvenience.h>
 
@@ -40,7 +37,6 @@ ASOVERLOADABLE ASDimension ASDimensionMake(NSString *dimension)
     }
   }
   
-  ASDisplayNodeCAssert(NO, @"Parsing dimension failed for: %@", dimension);
   return ASDimensionAuto;
 }
 
@@ -59,10 +55,6 @@ NSString *NSStringFromASDimension(ASDimension dimension)
 #pragma mark - ASLayoutSize
 
 ASLayoutSize const ASLayoutSizeAuto = {ASDimensionAuto, ASDimensionAuto};
-
-#pragma mark - ASEdgeInsets
-
-ASEdgeInsets const ASEdgeInsetsZero = {};
 
 #pragma mark - ASSizeRange
 
@@ -97,14 +89,37 @@ struct _Range {
 
 ASSizeRange ASSizeRangeIntersect(ASSizeRange sizeRange, ASSizeRange otherSizeRange)
 {
-  auto w = _Range({sizeRange.min.width, sizeRange.max.width}).intersect({otherSizeRange.min.width, otherSizeRange.max.width});
-  auto h = _Range({sizeRange.min.height, sizeRange.max.height}).intersect({otherSizeRange.min.height, otherSizeRange.max.height});
+  let w = _Range({sizeRange.min.width, sizeRange.max.width}).intersect({otherSizeRange.min.width, otherSizeRange.max.width});
+  let h = _Range({sizeRange.min.height, sizeRange.max.height}).intersect({otherSizeRange.min.height, otherSizeRange.max.height});
   return {{w.min, h.min}, {w.max, h.max}};
 }
 
 NSString *NSStringFromASSizeRange(ASSizeRange sizeRange)
 {
-  return [NSString stringWithFormat:@"<ASSizeRange: min=%@, max=%@>",
-          NSStringFromCGSize(sizeRange.min),
-          NSStringFromCGSize(sizeRange.max)];
+  // 17 field length copied from iOS 10.3 impl of NSStringFromCGSize.
+  if (CGSizeEqualToSize(sizeRange.min, sizeRange.max)) {
+    return [NSString stringWithFormat:@"{{%.*g, %.*g}}",
+            17, sizeRange.min.width,
+            17, sizeRange.min.height];
+  }
+  return [NSString stringWithFormat:@"{{%.*g, %.*g}, {%.*g, %.*g}}",
+          17, sizeRange.min.width,
+          17, sizeRange.min.height,
+          17, sizeRange.max.width,
+          17, sizeRange.max.height];
 }
+
+#if YOGA
+#pragma mark - Yoga - ASEdgeInsets
+ASEdgeInsets const ASEdgeInsetsZero = {};
+
+ASEdgeInsets ASEdgeInsetsMake(UIEdgeInsets edgeInsets)
+{
+  ASEdgeInsets asEdgeInsets = ASEdgeInsetsZero;
+  asEdgeInsets.top = ASDimensionMake(edgeInsets.top);
+  asEdgeInsets.left = ASDimensionMake(edgeInsets.left);
+  asEdgeInsets.bottom = ASDimensionMake(edgeInsets.bottom);
+  asEdgeInsets.right = ASDimensionMake(edgeInsets.right);
+  return asEdgeInsets;
+}
+#endif

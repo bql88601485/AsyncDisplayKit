@@ -1,9 +1,10 @@
 //
 //  NSIndexSet+ASHelpers.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 6/23/16.
-//  Copyright © 2016 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <Foundation/Foundation.h>
@@ -24,7 +25,5 @@
 
 /// Returns all the section indexes contained in the index paths array.
 + (NSIndexSet *)as_sectionsFromIndexPaths:(NSArray<NSIndexPath *> *)indexPaths;
-
-- (NSArray<NSIndexPath *> *)as_filterIndexPathsBySection:(id<NSFastEnumeration>)indexPaths;
 
 @end

@@ -1,19 +1,19 @@
 //
-//  ASScrollNode.m
-//  AsyncDisplayKit
+//  ASScrollNode.mm
+//  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASScrollNode.h>
 #import <AsyncDisplayKit/ASDisplayNodeExtras.h>
 #import <AsyncDisplayKit/ASDisplayNode+FrameworkPrivate.h>
-#import <AsyncDisplayKit/ASDisplayNode+FrameworkSubclasses.h>
+#import <AsyncDisplayKit/ASDisplayNode+Subclasses.h>
 #import <AsyncDisplayKit/ASLayout.h>
 #import <AsyncDisplayKit/_ASDisplayLayer.h>
+#import <AsyncDisplayKit/ASThread.h>
 
 @interface ASScrollView : UIScrollView
 @end
@@ -74,7 +74,7 @@
                      restrictedToSize:(ASLayoutElementSize)size
                  relativeToParentSize:(CGSize)parentSize
 {
-  ASDN::MutexLocker l(__instanceLock__);  // Lock for using our instance variables.
+  ASLockScopeSelf();  // Lock for using our instance variables.
 
   ASSizeRange contentConstrainedSize = constrainedSize;
   if (ASScrollDirectionContainsVerticalDirection(_scrollableDirections)) {
@@ -92,10 +92,12 @@
     // To understand this code, imagine we're containing a horizontal stack set within a vertical table node.
     // Our parentSize is fixed ~375pt width, but 0 - INF height.  Our stack measures 1000pt width, 50pt height.
     // In this case, we want our scrollNode.bounds to be 375pt wide, and 50pt high.  ContentSize 1000pt, 50pt.
-    // We can achieve this behavior by: 1. Always set contentSize to layout.size.  2. Set bounds to parentSize,
+    // We can achieve this behavior by:
+    // 1. Always set contentSize to layout.size.
+    // 2. Set bounds to a size that is calculated by clamping parentSize against constrained size,
     // unless one dimension is not defined, in which case adopt the contentSize for that dimension.
     _contentCalculatedSizeFromLayout = layout.size;
-    CGSize selfSize = parentSize;
+    CGSize selfSize = ASSizeRangeClamp(constrainedSize, parentSize);
     if (ASPointsValidForLayout(selfSize.width) == NO) {
       selfSize.width = _contentCalculatedSizeFromLayout.width;
     }
@@ -114,7 +116,7 @@
 {
   [super layout];
   
-  ASDN::MutexLocker l(__instanceLock__);  // Lock for using our two instance variables.
+  ASLockScopeSelf();  // Lock for using our two instance variables.
   
   if (_automaticallyManagesContentSize) {
     CGSize contentSize = _contentCalculatedSizeFromLayout;
@@ -128,13 +130,13 @@
 
 - (BOOL)automaticallyManagesContentSize
 {
-  ASDN::MutexLocker l(__instanceLock__);
+  ASLockScopeSelf();
   return _automaticallyManagesContentSize;
 }
 
 - (void)setAutomaticallyManagesContentSize:(BOOL)automaticallyManagesContentSize
 {
-  ASDN::MutexLocker l(__instanceLock__);
+  ASLockScopeSelf();
   _automaticallyManagesContentSize = automaticallyManagesContentSize;
   if (_automaticallyManagesContentSize == YES
       && ASScrollDirectionContainsVerticalDirection(_scrollableDirections) == NO
@@ -147,14 +149,17 @@
 
 - (ASScrollDirection)scrollableDirections
 {
-  ASDN::MutexLocker l(__instanceLock__);
+  ASLockScopeSelf();
   return _scrollableDirections;
 }
 
 - (void)setScrollableDirections:(ASScrollDirection)scrollableDirections
 {
-  ASDN::MutexLocker l(__instanceLock__);
-  _scrollableDirections = scrollableDirections;
+  ASLockScopeSelf();
+  if (_scrollableDirections != scrollableDirections) {
+    _scrollableDirections = scrollableDirections;
+    [self setNeedsLayout];
+  }
 }
 
 @end

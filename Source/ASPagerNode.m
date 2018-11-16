@@ -1,16 +1,18 @@
 //
 //  ASPagerNode.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Levi McCallum on 12/7/15.
-//
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
+#ifndef MINIMAL_ASDK
 #import <AsyncDisplayKit/ASPagerNode.h>
+#import <AsyncDisplayKit/ASPagerNode+Beta.h>
+
+#import <AsyncDisplayKit/ASCollectionGalleryLayoutDelegate.h>
+#import <AsyncDisplayKit/ASCollectionNode+Beta.h>
 #import <AsyncDisplayKit/ASDelegateProxy.h>
 #import <AsyncDisplayKit/ASDisplayNode+FrameworkPrivate.h>
 #import <AsyncDisplayKit/ASDisplayNode+Subclasses.h>
@@ -20,10 +22,8 @@
 #import <AsyncDisplayKit/ASCollectionView+Undeprecated.h>
 #import <AsyncDisplayKit/UIResponder+AsyncDisplayKit.h>
 
-@interface ASPagerNode () <ASCollectionDataSource, ASCollectionDelegate, ASCollectionDelegateFlowLayout, ASDelegateProxyInterceptor>
+@interface ASPagerNode () <ASCollectionDataSource, ASCollectionDelegate, ASCollectionDelegateFlowLayout, ASDelegateProxyInterceptor, ASCollectionGalleryLayoutPropertiesProviding>
 {
-  ASPagerFlowLayout *_flowLayout;
-
   __weak id <ASPagerDataSource> _pagerDataSource;
   ASPagerNodeProxy *_proxyDataSource;
   struct {
@@ -32,9 +32,6 @@
   } _pagerDataSourceFlags;
 
   __weak id <ASPagerDelegate> _pagerDelegate;
-  struct {
-    unsigned constrainedSizeForNode:1;
-  } _pagerDelegateFlags;
   ASPagerNodeProxy *_proxyDelegate;
 }
 
@@ -59,9 +56,17 @@
 - (instancetype)initWithCollectionViewLayout:(ASPagerFlowLayout *)flowLayout;
 {
   ASDisplayNodeAssert([flowLayout isKindOfClass:[ASPagerFlowLayout class]], @"ASPagerNode requires a flow layout.");
+  ASDisplayNodeAssertTrue(flowLayout.scrollDirection == UICollectionViewScrollDirectionHorizontal);
   self = [super initWithCollectionViewLayout:flowLayout];
-  if (self != nil) {
-    _flowLayout = flowLayout;
+  return self;
+}
+
+- (instancetype)initUsingAsyncCollectionLayout
+{
+  ASCollectionGalleryLayoutDelegate *layoutDelegate = [[ASCollectionGalleryLayoutDelegate alloc] initWithScrollableDirections:ASScrollDirectionHorizontalDirections];
+  self = [super initWithLayoutDelegate:layoutDelegate layoutFacilitator:nil];
+  if (self) {
+    layoutDelegate.propertiesProvider = self;
   }
   return self;
 }
@@ -98,7 +103,15 @@
 
 - (NSInteger)currentPageIndex
 {
-  return (self.view.contentOffset.x / CGRectGetWidth(self.view.bounds));
+  return (self.view.contentOffset.x / [self pageSize].width);
+}
+
+- (CGSize)pageSize
+{
+  UIEdgeInsets contentInset = self.contentInset;
+  CGSize pageSize = self.bounds.size;
+  pageSize.height -= (contentInset.top + contentInset.bottom);
+  return pageSize;
 }
 
 #pragma mark - Helpers
@@ -121,6 +134,14 @@
     return NSNotFound;
   }
   return indexPath.row;
+}
+
+#pragma mark - ASCollectionGalleryLayoutPropertiesProviding
+
+- (CGSize)galleryLayoutDelegate:(nonnull ASCollectionGalleryLayoutDelegate *)delegate sizeForElements:(nonnull ASElementMap *)elements
+{
+  ASDisplayNodeAssertMainThread();
+  return [self pageSize];
 }
 
 #pragma mark - ASCollectionDataSource
@@ -150,14 +171,7 @@
 
 - (ASSizeRange)collectionNode:(ASCollectionNode *)collectionNode constrainedSizeForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-  if (_pagerDelegateFlags.constrainedSizeForNode) {
-    return [_pagerDelegate pagerNode:self constrainedSizeForNodeAtIndex:indexPath.item];
-  }
-#pragma clang diagnostic pop
-
-  return ASSizeRangeMake(self.bounds.size);
+  return ASSizeRangeMake([self pageSize]);
 }
 
 #pragma mark - Data Source Proxy
@@ -189,15 +203,7 @@
 {
   if (delegate != _pagerDelegate) {
     _pagerDelegate = delegate;
-    
-    if (delegate == nil) {
-      memset(&_pagerDelegateFlags, 0, sizeof(_pagerDelegateFlags));
-    } else {
-    	_pagerDelegateFlags.constrainedSizeForNode = [_pagerDelegate respondsToSelector:@selector(pagerNode:constrainedSizeForNodeAtIndex:)];
-    }
-    
     _proxyDelegate = delegate ? [[ASPagerNodeProxy alloc] initWithTarget:delegate interceptor:self] : nil;
-    
     super.delegate = (id <ASCollectionDelegate>)_proxyDelegate;
   }
 }
@@ -208,14 +214,12 @@
   [self setDelegate:nil];
 }
 
-- (void)didEnterVisibleState
+- (void)didEnterHierarchy
 {
-	[super didEnterVisibleState];
+	[super didEnterHierarchy];
 
 	// Check that our view controller does not automatically set our content insets
-	// It would be better to have a -didEnterHierarchy hook to put this in, but
-	// such a hook doesn't currently exist, and in every use case I can imagine,
-	// the pager is not hosted inside a range-managed node.
+	// In every use case I can imagine, the pager is not hosted inside a range-managed node.
 	if (_allowsAutomaticInsetsAdjustment == NO) {
 		UIViewController *vc = [self.view asdk_associatedViewController];
 		if (vc.automaticallyAdjustsScrollViewInsets) {
@@ -226,3 +230,5 @@
 }
 
 @end
+
+#endif

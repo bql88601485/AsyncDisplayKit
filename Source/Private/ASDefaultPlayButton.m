@@ -1,13 +1,10 @@
 //
 //  ASDefaultPlayButton.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Luke Parham on 1/27/16.
-//
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASDefaultPlayButton.h>
@@ -26,7 +23,7 @@
   return self;
 }
 
-+ (void)drawRect:(CGRect)bounds withParameters:(id<NSObject>)parameters isCancelled:(asdisplaynode_iscancelled_block_t)isCancelledBlock isRasterizing:(BOOL)isRasterizing
++ (void)drawRect:(CGRect)bounds withParameters:(id)parameters isCancelled:(asdisplaynode_iscancelled_block_t)isCancelledBlock isRasterizing:(BOOL)isRasterizing
 {
   CGFloat originX = bounds.size.width/4;
   CGRect buttonBounds = CGRectMake(originX, bounds.size.height/4, bounds.size.width/2, bounds.size.height/2);

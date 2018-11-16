@@ -1,9 +1,9 @@
 //
 //  ASTextNodePerformanceTests.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 8/28/16.
-//  Copyright © 2016 Facebook. All rights reserved.
+//  Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <XCTest/XCTest.h>

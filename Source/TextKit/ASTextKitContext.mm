@@ -1,11 +1,10 @@
 //
 //  ASTextKitContext.mm
-//  AsyncDisplayKit
+//  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASTextKitContext.h>
@@ -33,8 +32,9 @@
 {
   if (self = [super init]) {
     // Concurrently initialising TextKit components crashes (rdar://18448377) so we use a global lock.
-    static ASDN::Mutex __staticMutex;
-    ASDN::MutexLocker l(__staticMutex);
+    // Allocate __staticMutex on the heap to prevent destruction at app exit (https://github.com/TextureGroup/Texture/issues/136)
+    static ASDN::StaticMutex& __staticMutex = *new ASDN::StaticMutex;
+    ASDN::StaticMutexLocker l(__staticMutex);
     
     __instanceLock__ = std::make_shared<ASDN::Mutex>();
     
@@ -62,9 +62,9 @@
   return self;
 }
 
-- (void)performBlockWithLockedTextKitComponents:(void (^)(NSLayoutManager *,
-                                                          NSTextStorage *,
-                                                          NSTextContainer *))block
+- (void)performBlockWithLockedTextKitComponents:(NS_NOESCAPE void (^)(NSLayoutManager *,
+                                                                      NSTextStorage *,
+                                                                      NSTextContainer *))block
 {
   ASDN::MutexSharedLocker l(__instanceLock__);
   if (block) {

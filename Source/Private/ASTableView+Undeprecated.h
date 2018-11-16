@@ -1,9 +1,10 @@
 //
 //  ASTableView+Undeprecated.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 10/10/16.
-//  Copyright © 2016 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <Foundation/Foundation.h>
@@ -22,8 +23,22 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface ASTableView (Undeprecated)
 
-@property (nonatomic, weak) id<ASTableDelegate>   asyncDelegate;
-@property (nonatomic, weak) id<ASTableDataSource> asyncDataSource;
+@property (nullable, nonatomic, weak) id<ASTableDelegate>   asyncDelegate;
+@property (nullable, nonatomic, weak) id<ASTableDataSource> asyncDataSource;
+@property (nonatomic) UIEdgeInsets contentInset;
+@property (nonatomic) CGPoint contentOffset;
+@property (nonatomic) BOOL automaticallyAdjustsContentOffset;
+@property (nonatomic) BOOL inverted;
+@property (nullable, nonatomic, readonly) NSArray<NSIndexPath *> *indexPathsForVisibleRows;
+@property (nullable, nonatomic, readonly) NSArray<NSIndexPath *> *indexPathsForSelectedRows;
+@property (nullable, nonatomic, readonly) NSIndexPath *indexPathForSelectedRow;
+
+/**
+ * The number of screens left to scroll before the delegate -tableView:beginBatchFetchingWithContext: is called.
+ *
+ * Defaults to two screenfuls.
+ */
+@property (nonatomic) CGFloat leadingScreensForBatching;
 
 /**
  * Initializer.
@@ -96,12 +111,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)selectRowAtIndexPath:(NSIndexPath *)indexPath animated:(BOOL)animated scrollPosition:(UITableViewScrollPosition)scrollPosition;
 
-@property (nonatomic, readonly, nullable) NSArray<NSIndexPath *> *indexPathsForVisibleRows;
-
-@property (nonatomic, readonly, nullable) NSArray<NSIndexPath *> *indexPathsForSelectedRows;
-
-@property (nonatomic, readonly, nullable) NSIndexPath *indexPathForSelectedRow;
-
 - (nullable NSIndexPath *)indexPathForRowAtPoint:(CGPoint)point;
 
 - (nullable NSArray<NSIndexPath *> *)indexPathsForRowsInRect:(CGRect)rect;
@@ -123,20 +132,13 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable NSIndexPath *)indexPathForNode:(ASCellNode *)cellNode AS_WARN_UNUSED_RESULT;
 
 /**
- * The number of screens left to scroll before the delegate -tableView:beginBatchFetchingWithContext: is called.
- *
- * Defaults to two screenfuls.
- */
-@property (nonatomic, assign) CGFloat leadingScreensForBatching;
-
-/**
  * Reload everything from scratch, destroying the working range and all cached nodes.
  *
  * @param completion block to run on completion of asynchronous loading or nil. If supplied, the block is run on
  * the main thread.
  * @warning This method is substantially more expensive than UITableView's version.
  */
--(void)reloadDataWithCompletion:(void (^ _Nullable)())completion;
+-(void)reloadDataWithCompletion:(void (^ _Nullable)(void))completion;
 
 /**
  * Reload everything from scratch, destroying the working range and all cached nodes.
@@ -144,14 +146,6 @@ NS_ASSUME_NONNULL_BEGIN
  * @warning This method is substantially more expensive than UITableView's version.
  */
 - (void)reloadData;
-
-/**
- * Reload everything from scratch entirely on the main thread, destroying the working range and all cached nodes.
- *
- * @warning This method is substantially more expensive than UITableView's version and will block the main thread while
- * all the cells load.
- */
-- (void)reloadDataImmediately;
 
 /**
  * Triggers a relayout of all nodes.
@@ -297,6 +291,8 @@ NS_ASSUME_NONNULL_BEGIN
  * before this method is called.
  */
 - (void)moveRowAtIndexPath:(NSIndexPath *)indexPath toIndexPath:(NSIndexPath *)newIndexPath;
+
+- (void)setContentOffset:(CGPoint)contentOffset animated:(BOOL)animated;
 
 @end
 NS_ASSUME_NONNULL_END

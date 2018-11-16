@@ -1,13 +1,10 @@
 //
 //  _ASTransitionContext.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Levi McCallum on 2/4/16.
-//
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <Foundation/Foundation.h>
@@ -37,7 +34,7 @@
 
 @interface _ASTransitionContext : NSObject <ASContextTransitioning>
 
-@property (assign, readonly, nonatomic, getter=isAnimated) BOOL animated;
+@property (nonatomic, readonly, getter=isAnimated) BOOL animated;
 
 - (instancetype)initWithAnimation:(BOOL)animated
                    layoutDelegate:(id<_ASTransitionContextLayoutDelegate>)layoutDelegate
@@ -46,7 +43,7 @@
 @end
 
 @interface _ASAnimatedTransitionContext : NSObject
-@property (nonatomic, strong, readonly) ASDisplayNode *node;
-@property (nonatomic, assign, readonly) CGFloat alpha;
-+ (instancetype)contextForNode:(ASDisplayNode *)node alpha:(CGFloat)alphaValue;
+@property (nonatomic, readonly) ASDisplayNode *node;
+@property (nonatomic, readonly) CGFloat alpha;
++ (instancetype)contextForNode:(ASDisplayNode *)node alpha:(CGFloat)alphaValue NS_RETURNS_RETAINED;
 @end

@@ -1,18 +1,14 @@
 //
 //  ASImageNode+CGExtras.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <UIKit/UIKit.h>
 #import <AsyncDisplayKit/ASBaseDefines.h>
-
-ASDISPLAYNODE_EXTERN_C_BEGIN
-
 
 /**
  @abstract Decides how to scale and crop an image to fit in the provided size, while not wasting memory by upscaling images
@@ -24,7 +20,7 @@ ASDISPLAYNODE_EXTERN_C_BEGIN
  @param forcedSize A CGSize, that if non-CGSizeZero, indicates that the backing size should be forcedSize and not calculated based on boundsSize.
  @discussion If the image is smaller than the size and UIViewContentModeScaleToAspectFill is specified, we suggest the input size so it will be efficiently upscaled on the GPU by the displaying layer at composite time.
  */
-extern void ASCroppedImageBackingSizeAndDrawRectInBounds(CGSize sourceImageSize,
+AS_EXTERN void ASCroppedImageBackingSizeAndDrawRectInBounds(CGSize sourceImageSize,
                                                          CGSize boundsSize,
                                                          UIViewContentMode contentMode,
                                                          CGRect cropRect,
@@ -33,5 +29,3 @@ extern void ASCroppedImageBackingSizeAndDrawRectInBounds(CGSize sourceImageSize,
                                                          CGSize *outBackingSize,
                                                          CGRect *outDrawRect
                                                          );
-
-ASDISPLAYNODE_EXTERN_C_END

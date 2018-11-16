@@ -1,9 +1,10 @@
 //
 //  ASObjectDescriptionHelpers.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 9/7/16.
-//  Copyright © 2016 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <Foundation/Foundation.h>
@@ -43,15 +44,13 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSMutableArray<NSDictionary *> *)propertiesForDescription;
 @end
 
-ASDISPLAYNODE_EXTERN_C_BEGIN
-
-NSString *ASGetDescriptionValueString(id object);
+AS_EXTERN NSString *ASGetDescriptionValueString(id object);
 
 /// Useful for structs etc. Returns e.g. { position = (0 0); frame = (0 0; 50 50) }
-NSString *ASObjectDescriptionMakeWithoutObject(NSArray<NSDictionary *> * _Nullable propertyGroups);
+AS_EXTERN NSString *ASObjectDescriptionMakeWithoutObject(NSArray<NSDictionary *> * _Nullable propertyGroups);
 
 /// Returns e.g. <MYObject: 0xFFFFFFFF; name = "Object Name"; frame = (0 0; 50 50)>
-NSString *ASObjectDescriptionMake(__autoreleasing id object, NSArray<NSDictionary *> * _Nullable propertyGroups);
+AS_EXTERN NSString *ASObjectDescriptionMake(__autoreleasing id object, NSArray<NSDictionary *> * _Nullable propertyGroups);
 
 /**
  * Returns e.g. <MYObject: 0xFFFFFFFF>
@@ -59,10 +58,8 @@ NSString *ASObjectDescriptionMake(__autoreleasing id object, NSArray<NSDictionar
  * Note: `object` param is autoreleasing so that this function is dealloc-safe.
  *   No, unsafe_unretained isn't acceptable here – the optimizer may deallocate object early.
  */
-NSString *ASObjectDescriptionMakeTiny(__autoreleasing id _Nullable object);
+AS_EXTERN NSString *ASObjectDescriptionMakeTiny(__autoreleasing id _Nullable object);
 
-NSString * _Nullable ASStringWithQuotesIfMultiword(NSString * _Nullable string);
-
-ASDISPLAYNODE_EXTERN_C_END
+AS_EXTERN NSString * _Nullable ASStringWithQuotesIfMultiword(NSString * _Nullable string);
 
 NS_ASSUME_NONNULL_END

@@ -1,14 +1,15 @@
 //
 //  ASUICollectionViewTests.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 8/18/16.
-//  Copyright © 2016 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <XCTest/XCTest.h>
 #import <OCMock/OCMock.h>
-#import <OCMock/NSInvocation+OCMAdditions.h>
+#import "NSInvocation+ASTestHelpers.h"
 
 @interface ASUICollectionViewTests : XCTestCase
 
@@ -86,7 +87,7 @@
   id dataSource = [OCMockObject niceMockForProtocol:@protocol(UICollectionViewDataSource)];
   __block id view = nil;
   [[[dataSource expect] andDo:^(NSInvocation *invocation) {
-    NSIndexPath *indexPath = [invocation getArgumentAtIndexAsObject:4];
+    NSIndexPath *indexPath = [invocation as_argumentAtIndexAsObject:4];
     view = [cv dequeueReusableSupplementaryViewOfKind:@"SuppKind" withReuseIdentifier:@"ReuseID" forIndexPath:indexPath];
     [invocation setReturnValue:&view];
   }] collectionView:cv viewForSupplementaryElementOfKind:@"SuppKind" atIndexPath:indexPath];
@@ -95,12 +96,13 @@
   cv.dataSource = dataSource;
   if (shouldFail) {
     XCTAssertThrowsSpecificNamed([cv layoutIfNeeded], NSException, NSInternalInconsistencyException);
-  } else {
-    [cv layoutIfNeeded];
-    XCTAssertEqualObjects(attr, [cv layoutAttributesForSupplementaryElementOfKind:@"SuppKind" atIndexPath:indexPath]);
-    XCTAssertEqual(view, [cv supplementaryViewForElementKind:@"SuppKind" atIndexPath:indexPath]);
+    // Early return because behavior after exception is thrown is undefined.
+    return;
   }
 
+  [cv layoutIfNeeded];
+  XCTAssertEqualObjects(attr, [cv layoutAttributesForSupplementaryElementOfKind:@"SuppKind" atIndexPath:indexPath]);
+  XCTAssertEqual(view, [cv supplementaryViewForElementKind:@"SuppKind" atIndexPath:indexPath]);
   [dataSource verify];
   [layoutMock verify];
 }
@@ -113,7 +115,7 @@
 
   // Setup empty data source – 0 sections, 0 items
   [[[dataSource stub] andDo:^(NSInvocation *invocation) {
-    NSIndexPath *indexPath = [invocation getArgumentAtIndexAsObject:3];
+    NSIndexPath *indexPath = [invocation as_argumentAtIndexAsObject:3];
     __autoreleasing UICollectionViewCell *view = [cv dequeueReusableCellWithReuseIdentifier:@"CellID" forIndexPath:indexPath];
     [invocation setReturnValue:&view];
   }] collectionView:cv cellForItemAtIndexPath:OCMOCK_ANY];

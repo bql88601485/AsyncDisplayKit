@@ -1,20 +1,10 @@
 //
 //  PhotoFeedNodeController.m
-//  Sample
+//  Texture
 //
-//  Created by Hannah Troisi on 2/17/16.
-//
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  FACEBOOK BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-//  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-//  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import "PhotoFeedNodeController.h"
@@ -27,12 +17,10 @@
 #define AUTO_TAIL_LOADING_NUM_SCREENFULS  2.5
 
 @interface PhotoFeedNodeController () <ASTableDelegate, ASTableDataSource>
+@property (nonatomic, strong) ASTableNode *tableNode;
 @end
 
 @implementation PhotoFeedNodeController
-{
-  ASTableNode *_tableNode;
-}
 
 #pragma mark - Lifecycle
 
@@ -42,15 +30,15 @@
 {
   _tableNode = [[ASTableNode alloc] init];
   self = [super initWithNode:_tableNode];
-  
+
   if (self) {
     self.navigationItem.title = @"ASDK";
     [self.navigationController setNavigationBarHidden:YES];
-    
+
     _tableNode.dataSource = self;
     _tableNode.delegate = self;
   }
-  
+
   return self;
 }
 
@@ -59,16 +47,15 @@
 - (void)loadView
 {
   [super loadView];
-  
-  _tableNode.view.leadingScreensForBatching = AUTO_TAIL_LOADING_NUM_SCREENFULS;  // overriding default of 2.0
+
+  self.tableNode.leadingScreensForBatching = AUTO_TAIL_LOADING_NUM_SCREENFULS;  // overriding default of 2.0
 }
 
 - (void)loadPageWithContext:(ASBatchContext *)context
 {
   [self.photoFeed requestPageWithCompletionBlock:^(NSArray *newPhotos){
-    
+
     [self insertNewRows:newPhotos];
-    [self requestCommentsForPhotos:newPhotos];
     if (context) {
       [context completeBatchFetching:YES];
     }
@@ -87,11 +74,6 @@
   [self loadPageWithContext:nil];
 }
 
-- (void)requestCommentsForPhotos:(NSArray *)newPhotos
-{
-  // Do nothing (#1530).
-}
-
 #pragma mark - ASTableDataSource methods
 
 - (NSInteger)tableNode:(ASTableNode *)tableNode numberOfRowsInSection:(NSInteger)section
@@ -107,7 +89,7 @@
     PhotoCellNode *cellNode = [[PhotoCellNode alloc] initWithPhotoObject:photoModel];
     return cellNode;
   };
-  
+
   return ASCellNodeBlock;
 }
 

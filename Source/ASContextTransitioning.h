@@ -1,13 +1,10 @@
 //
 //  ASContextTransitioning.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Levi McCallum on 2/4/16.
-//
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASDimension.h>
@@ -17,8 +14,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-extern NSString * const ASTransitionContextFromLayoutKey;
-extern NSString * const ASTransitionContextToLayoutKey;
+AS_EXTERN NSString * const ASTransitionContextFromLayoutKey;
+AS_EXTERN NSString * const ASTransitionContextToLayoutKey;
 
 @protocol ASContextTransitioning <NSObject>
 

@@ -1,11 +1,12 @@
 //
 //  ASCollectionViewLayoutInspector.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Garrett Moon on 11/19/16.
-//  Copyright © 2016 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
-
+#ifndef MINIMAL_ASDK
 #import <AsyncDisplayKit/ASCollectionViewLayoutInspector.h>
 
 #import <AsyncDisplayKit/ASCollectionView.h>
@@ -18,9 +19,12 @@
 // of the collection view
 ASSizeRange NodeConstrainedSizeForScrollDirection(ASCollectionView *collectionView) {
   CGSize maxSize = collectionView.bounds.size;
+  UIEdgeInsets contentInset = collectionView.contentInset;
   if (ASScrollDirectionContainsHorizontalDirection(collectionView.scrollableDirections)) {
     maxSize.width = CGFLOAT_MAX;
+    maxSize.height -= (contentInset.top + contentInset.bottom);
   } else {
+    maxSize.width -= (contentInset.left + contentInset.right);
     maxSize.height = CGFLOAT_MAX;
   }
   return ASSizeRangeMake(CGSizeZero, maxSize);
@@ -33,13 +37,6 @@ ASSizeRange NodeConstrainedSizeForScrollDirection(ASCollectionView *collectionVi
     unsigned int implementsConstrainedSizeForNodeAtIndexPathDeprecated:1;
     unsigned int implementsConstrainedSizeForNodeAtIndexPath:1;
   } _delegateFlags;
-}
-
-#pragma mark Lifecycle
-
-- (instancetype)initWithCollectionView:(ASCollectionView *)collectionView
-{
-  return [self init];
 }
 
 #pragma mark ASCollectionViewLayoutInspecting
@@ -77,3 +74,5 @@ ASSizeRange NodeConstrainedSizeForScrollDirection(ASCollectionView *collectionVi
 }
 
 @end
+
+#endif

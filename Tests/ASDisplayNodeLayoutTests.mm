@@ -1,17 +1,17 @@
 //
-//  ASDisplayNodeLayoutTests.m
-//  AsyncDisplayKit
+//  ASDisplayNodeLayoutTests.mm
+//  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import "ASXCTExtensions.h"
 #import <AsyncDisplayKit/AsyncDisplayKit.h>
 #import "ASLayoutSpecSnapshotTestsHelper.h"
 #import <AsyncDisplayKit/ASDisplayNode+FrameworkPrivate.h>
+#import <stdatomic.h>
 
 @interface ASDisplayNodeLayoutTests : XCTestCase
 @end
@@ -36,7 +36,7 @@
   ASXCTAssertEqualSizes(displayNode.calculatedSize, CGSizeZero, @"Calculated size before measurement and layout should be 0");
   ASXCTAssertEqualSizes(buttonNode.calculatedSize, CGSizeZero, @"Calculated size before measurement and layout should be 0");
   
-  // Trigger view creation and layout pass without a manual measure: call before so the automatic measurement
+  // Trigger view creation and layout pass without a manual -layoutThatFits: call before so the automatic measurement
   // pass will trigger in the layout pass
   [displayNode.view layoutIfNeeded];
   
@@ -86,9 +86,9 @@
   ASButtonNode *buttonNode = [ASButtonNode new];
   [displayNode addSubnode:buttonNode];
   
-  __block size_t numberOfLayoutSpecThatFitsCalls = 0;
+  __block atomic_int numberOfLayoutSpecThatFitsCalls = ATOMIC_VAR_INIT(0);
   displayNode.layoutSpecBlock = ^(ASDisplayNode * _Nonnull node, ASSizeRange constrainedSize) {
-    __sync_fetch_and_add(&numberOfLayoutSpecThatFitsCalls, 1);
+    atomic_fetch_add(&numberOfLayoutSpecThatFitsCalls, 1);
     return [ASInsetLayoutSpec insetLayoutSpecWithInsets:UIEdgeInsetsZero child:buttonNode];
   };
   

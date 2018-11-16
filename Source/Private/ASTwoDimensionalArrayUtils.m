@@ -1,11 +1,10 @@
 //
 //  ASTwoDimensionalArrayUtils.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASAssert.h>
@@ -29,7 +28,7 @@ NSMutableArray<NSMutableArray *> *ASTwoDimensionalArrayDeepMutableCopy(NSArray<N
   return newArray;
 }
 
-void ASDeleteElementsInTwoDimensionalArrayAtIndexPaths(NSMutableArray *mutableArray, NSArray *indexPaths)
+void ASDeleteElementsInTwoDimensionalArrayAtIndexPaths(NSMutableArray *mutableArray, NSArray<NSIndexPath *> *indexPaths)
 {
   if (indexPaths.count == 0) {
     return;
@@ -48,23 +47,23 @@ void ASDeleteElementsInTwoDimensionalArrayAtIndexPaths(NSMutableArray *mutableAr
   for (NSIndexPath *indexPath in indexPaths) {
     NSInteger section = indexPath.section;
     if (section >= mutableArray.count) {
-      ASDisplayNodeCFailAssert(@"Invalid section index %zd – only %zd sections", section, mutableArray.count);
+      ASDisplayNodeCFailAssert(@"Invalid section index %ld – only %ld sections", (long)section, (long)mutableArray.count);
       continue;
     }
 
     NSMutableArray *subarray = mutableArray[section];
     NSInteger item = indexPath.item;
     if (item >= subarray.count) {
-      ASDisplayNodeCFailAssert(@"Invalid item index %zd – only %zd items in section %zd", item, subarray.count, section);
+      ASDisplayNodeCFailAssert(@"Invalid item index %ld – only %ld items in section %ld", (long)item, (long)subarray.count, (long)section);
       continue;
     }
     [subarray removeObjectAtIndex:item];
   }
 }
 
-NSArray *ASIndexPathsForTwoDimensionalArray(NSArray <NSArray *>* twoDimensionalArray)
+NSArray<NSIndexPath *> *ASIndexPathsForTwoDimensionalArray(NSArray <NSArray *>* twoDimensionalArray)
 {
-  NSMutableArray *result = [NSMutableArray array];
+  NSMutableArray *result = [[NSMutableArray alloc] init];
   NSInteger section = 0;
   NSInteger i = 0;
   for (NSArray *subarray in twoDimensionalArray) {
@@ -80,7 +79,7 @@ NSArray *ASIndexPathsForTwoDimensionalArray(NSArray <NSArray *>* twoDimensionalA
 
 NSArray *ASElementsInTwoDimensionalArray(NSArray <NSArray *>* twoDimensionalArray)
 {
-  NSMutableArray *result = [NSMutableArray array];
+  NSMutableArray *result = [[NSMutableArray alloc] init];
   NSInteger i = 0;
   for (NSArray *subarray in twoDimensionalArray) {
     ASDisplayNodeCAssert([subarray isKindOfClass:[NSArray class]], @"This function expects NSArray<NSArray *> *");

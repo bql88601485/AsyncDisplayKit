@@ -1,11 +1,13 @@
 //
 //  ASCollectionView+Undeprecated.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 10/10/16.
-//  Copyright © 2016 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
+#ifndef MINIMAL_ASDK
 #import <AsyncDisplayKit/ASCollectionView.h>
 
 NS_ASSUME_NONNULL_BEGIN
@@ -55,6 +57,20 @@ NS_ASSUME_NONNULL_BEGIN
  * @param layout The layout object to use for organizing items. The collection view stores a strong reference to the specified object. Must not be nil.
  */
 - (instancetype)initWithFrame:(CGRect)frame collectionViewLayout:(UICollectionViewLayout *)layout;
+
+@property (nonatomic) CGFloat leadingScreensForBatching;
+
+@property (nonatomic) BOOL inverted;
+
+@property (nonatomic, readonly) ASScrollDirection scrollDirection;
+
+@property (nonatomic, readonly) ASScrollDirection scrollableDirections;
+
+@property (nonatomic, weak) id<ASCollectionViewLayoutInspecting> layoutInspector;
+
+@property (nonatomic) UIEdgeInsets contentInset;
+
+@property (nonatomic) CGPoint contentOffset;
 
 /**
  * Tuning parameters for a range type in full mode.
@@ -131,7 +147,7 @@ NS_ASSUME_NONNULL_BEGIN
  *                    Boolean parameter that contains the value YES if all of the related animations completed successfully or
  *                    NO if they were interrupted. This parameter may be nil. If supplied, the block is run on the main thread.
  */
-- (void)performBatchAnimated:(BOOL)animated updates:(nullable AS_NOESCAPE void (^)())updates completion:(nullable void (^)(BOOL finished))completion;
+- (void)performBatchAnimated:(BOOL)animated updates:(nullable AS_NOESCAPE void (^)(void))updates completion:(nullable void (^)(BOOL finished))completion;
 
 /**
  *  Perform a batch of updates asynchronously.  This method must be called from the main thread.
@@ -142,31 +158,7 @@ NS_ASSUME_NONNULL_BEGIN
  *                    Boolean parameter that contains the value YES if all of the related animations completed successfully or
  *                    NO if they were interrupted. This parameter may be nil. If supplied, the block is run on the main thread.
  */
-- (void)performBatchUpdates:(nullable AS_NOESCAPE void (^)())updates completion:(nullable void (^)(BOOL finished))completion;
-
-/**
- * Reload everything from scratch, destroying the working range and all cached nodes.
- *
- * @param completion block to run on completion of asynchronous loading or nil. If supplied, the block is run on
- * the main thread.
- * @warning This method is substantially more expensive than UICollectionView's version.
- */
-- (void)reloadDataWithCompletion:(nullable void (^)())completion;
-
-/**
- * Reload everything from scratch, destroying the working range and all cached nodes.
- *
- * @warning This method is substantially more expensive than UICollectionView's version.
- */
-- (void)reloadData;
-
-/**
- * Reload everything from scratch entirely on the main thread, destroying the working range and all cached nodes.
- *
- * @warning This method is substantially more expensive than UICollectionView's version and will block the main thread
- * while all the cells load.
- */
-- (void)reloadDataImmediately;
+- (void)performBatchUpdates:(nullable AS_NOESCAPE void (^)(void))updates completion:(nullable void (^)(BOOL finished))completion;
 
 /**
  * Triggers a relayout of all nodes.
@@ -297,6 +289,15 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (nullable NSIndexPath *)indexPathForNode:(ASCellNode *)cellNode AS_WARN_UNUSED_RESULT;
 
+/**
+ *  Invalidates and recalculates the cached sizes stored for pass-through cells used in interop mode.
+ */
+- (void)invalidateFlowLayoutDelegateMetrics;
+
+- (void)setContentOffset:(CGPoint)contentOffset animated:(BOOL)animated;
+
 @end
 
 NS_ASSUME_NONNULL_END
+
+#endif

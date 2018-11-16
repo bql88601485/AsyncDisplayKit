@@ -1,13 +1,10 @@
 //
 //  ASWeakMap.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Chris Danford on 7/11/16.
-//
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <Foundation/Foundation.h>
@@ -23,7 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 AS_SUBCLASSING_RESTRICTED
 @interface ASWeakMapEntry<Value> : NSObject
 
-@property (nonatomic, retain, readonly) Value value;
+@property (readonly) Value value;
 
 @end
 
@@ -44,7 +41,7 @@ AS_SUBCLASSING_RESTRICTED
  * The underlying storage is a hash table and the Key type should implement `hash` and `isEqual:`.
  */
 AS_SUBCLASSING_RESTRICTED
-@interface ASWeakMap<__covariant Key : NSObject *, Value> : NSObject
+@interface ASWeakMap<__covariant Key, Value> : NSObject
 
 /**
  * Read from the cache.  The Value object is accessible from the returned ASWeakMapEntry.

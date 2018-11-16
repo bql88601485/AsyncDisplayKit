@@ -1,11 +1,10 @@
 //
 //  _ASDisplayView.mm
-//  AsyncDisplayKit
+//  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/_ASDisplayView.h>
@@ -14,17 +13,63 @@
 #import <AsyncDisplayKit/_ASCoreAnimationExtras.h>
 #import <AsyncDisplayKit/_ASDisplayLayer.h>
 #import <AsyncDisplayKit/ASDisplayNodeInternal.h>
+#import <AsyncDisplayKit/ASDisplayNode+Convenience.h>
 #import <AsyncDisplayKit/ASDisplayNode+FrameworkPrivate.h>
 #import <AsyncDisplayKit/ASDisplayNode+Subclasses.h>
-#import <AsyncDisplayKit/ASObjectDescriptionHelpers.h>
+#import <AsyncDisplayKit/ASInternalHelpers.h>
 #import <AsyncDisplayKit/ASLayout.h>
+#import <AsyncDisplayKit/ASObjectDescriptionHelpers.h>
+#import <AsyncDisplayKit/ASViewController.h>
+
+#pragma mark - _ASDisplayViewMethodOverrides
+
+typedef NS_OPTIONS(NSUInteger, _ASDisplayViewMethodOverrides)
+{
+  _ASDisplayViewMethodOverrideNone                          = 0,
+  _ASDisplayViewMethodOverrideCanBecomeFirstResponder       = 1 << 0,
+  _ASDisplayViewMethodOverrideBecomeFirstResponder          = 1 << 1,
+  _ASDisplayViewMethodOverrideCanResignFirstResponder       = 1 << 2,
+  _ASDisplayViewMethodOverrideResignFirstResponder          = 1 << 3,
+  _ASDisplayViewMethodOverrideIsFirstResponder              = 1 << 4,
+};
+
+/**
+ *  Returns _ASDisplayViewMethodOverrides for the given class
+ *
+ *  @param c the class, required.
+ *
+ *  @return _ASDisplayViewMethodOverrides.
+ */
+static _ASDisplayViewMethodOverrides GetASDisplayViewMethodOverrides(Class c)
+{
+  ASDisplayNodeCAssertNotNil(c, @"class is required");
+  
+  _ASDisplayViewMethodOverrides overrides = _ASDisplayViewMethodOverrideNone;
+  if (ASSubclassOverridesSelector([_ASDisplayView class], c, @selector(canBecomeFirstResponder))) {
+    overrides |= _ASDisplayViewMethodOverrideCanBecomeFirstResponder;
+  }
+  if (ASSubclassOverridesSelector([_ASDisplayView class], c, @selector(becomeFirstResponder))) {
+    overrides |= _ASDisplayViewMethodOverrideBecomeFirstResponder;
+  }
+  if (ASSubclassOverridesSelector([_ASDisplayView class], c, @selector(canResignFirstResponder))) {
+    overrides |= _ASDisplayViewMethodOverrideCanResignFirstResponder;
+  }
+  if (ASSubclassOverridesSelector([_ASDisplayView class], c, @selector(resignFirstResponder))) {
+    overrides |= _ASDisplayViewMethodOverrideResignFirstResponder;
+  }
+  if (ASSubclassOverridesSelector([_ASDisplayView class], c, @selector(isFirstResponder))) {
+    overrides |= _ASDisplayViewMethodOverrideIsFirstResponder;
+  }
+  return overrides;
+}
+
+#pragma mark - _ASDisplayView
 
 @interface _ASDisplayView ()
-@property (nullable, atomic, weak, readwrite) ASDisplayNode *asyncdisplaykit_node;
 
 // Keep the node alive while its view is active.  If you create a view, add its layer to a layer hierarchy, then release
 // the view, the layer retains the view to prevent a crash.  This replicates this behaviour for the node abstraction.
-@property (nonatomic, strong, readwrite) ASDisplayNode *keepalive_node;
+@property (nonatomic) ASDisplayNode *keepalive_node;
 @end
 
 @implementation _ASDisplayView
@@ -32,8 +77,23 @@
   BOOL _inHitTest;
   BOOL _inPointInside;
 
-  NSArray *_accessibleElements;
-  CGRect _lastAccessibleElementsFrame;
+  NSArray *_accessibilityElements;
+  CGRect _lastAccessibilityElementsFrame;
+  
+  _ASDisplayViewMethodOverrides _methodOverrides;
+}
+
+#pragma mark - Class
+
++ (void)initialize
+{
+  __unused Class initializeSelf = self;
+  IMP staticInitialize = imp_implementationWithBlock(^(_ASDisplayView *view) {
+    ASDisplayNodeAssert(view.class == initializeSelf, @"View class %@ does not have a matching _staticInitialize method; check to ensure [super initialize] is called within any custom +initialize implementations!  Overridden methods will not be called unless they are also implemented by superclass %@", view.class, initializeSelf);
+    view->_methodOverrides = GetASDisplayViewMethodOverrides(view.class);
+  });
+  
+  class_replaceMethod(self, @selector(_staticInitialize), staticInitialize, "v:@");
 }
 
 + (Class)layerClass
@@ -43,6 +103,26 @@
 
 #pragma mark - NSObject Overrides
 
+- (instancetype)init
+{
+  if (!(self = [super init]))
+    return nil;
+  
+  [self _initializeInstance];
+  
+  return self;
+}
+
+- (void)_initializeInstance
+{
+  [self _staticInitialize];
+}
+
+- (void)_staticInitialize
+{
+  ASDisplayNodeAssert(NO, @"_staticInitialize must be overridden");
+}
+
 // e.g. <MYPhotoNodeView: 0xFFFFFF; node = <MYPhotoNode: 0xFFFFFE>; frame = ...>
 - (NSString *)description
 {
@@ -51,7 +131,7 @@
   ASDisplayNode *node = _asyncdisplaykit_node;
 
   if (node != nil) {
-    NSString *classString = [NSString stringWithFormat:@"%@-", [node class]];
+    NSString *classString = [NSString stringWithFormat:@"%s-", object_getClassName(node)];
     [description replaceOccurrencesOfString:@"_ASDisplay" withString:classString options:kNilOptions range:NSMakeRange(0, description.length)];
     NSUInteger semicolon = [description rangeOfString:@";"].location;
     if (semicolon != NSNotFound) {
@@ -148,6 +228,18 @@
     self.keepalive_node = nil;
   }
 
+#ifndef MINIMAL_ASDK
+#if DEBUG
+  // This is only to help detect issues when a root-of-view-controller node is reused separately from its view controller.
+  // Avoid overhead in release.
+  if (superview && node.viewControllerRoot) {
+    UIViewController *vc = [node closestViewController];
+
+    ASDisplayNodeAssert(vc != nil && [vc isKindOfClass:[ASViewController class]] && ((ASViewController*)vc).node == node, @"This node was once used as a view controller's node. You should not reuse it without its view controller.");
+  }
+#endif
+#endif
+
   ASDisplayNode *supernode = node.supernode;
   ASDisplayNodeAssert(!supernode.isLayerBacked, @"Shouldn't be possible for superview's node to be layer-backed.");
   
@@ -191,7 +283,7 @@
   [super addSubview:view];
   
 #ifndef ASDK_ACCESSIBILITY_DISABLE
-  self.accessibleElements = nil;
+  self.accessibilityElements = nil;
 #endif
 }
 
@@ -200,7 +292,7 @@
   [super willRemoveSubview:subview];
   
 #ifndef ASDK_ACCESSIBILITY_DISABLE
-  self.accessibleElements = nil;
+  self.accessibilityElements = nil;
 #endif
 }
 
@@ -235,6 +327,12 @@
   ASDisplayNode *node = _asyncdisplaykit_node; // Create strong reference to weak ivar.
   [super setBounds:bounds];
   node.threadSafeBounds = bounds;
+}
+
+- (void)addGestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
+{
+  [super addGestureRecognizer:gestureRecognizer];
+  [_asyncdisplaykit_node nodeViewDidAddGestureRecognizer];
 }
 
 #pragma mark - Event Handling + UIResponder Overrides
@@ -332,13 +430,11 @@
   }
 }
 
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_6_0
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
 {
   ASDisplayNode *node = _asyncdisplaykit_node; // Create strong reference to weak ivar.
   return [node gestureRecognizerShouldBegin:gestureRecognizer];
 }
-#endif
 
 - (void)tintColorDidChange
 {
@@ -348,21 +444,72 @@
   [node tintColorDidChange];
 }
 
-- (BOOL)canBecomeFirstResponder {
-  ASDisplayNode *node = _asyncdisplaykit_node; // Create strong reference to weak ivar.
-  return [node canBecomeFirstResponder];
-}
+#pragma mark UIResponder Handling
 
-- (BOOL)canResignFirstResponder {
-  ASDisplayNode *node = _asyncdisplaykit_node; // Create strong reference to weak ivar.
-  return [node canResignFirstResponder];
-}
+#define IMPLEMENT_RESPONDER_METHOD(__sel, __nodeMethodOverride, __viewMethodOverride) \
+- (BOOL)__sel\
+{\
+  ASDisplayNode *node = _asyncdisplaykit_node; /* Create strong reference to weak ivar. */ \
+  /* Check if we can call through to ASDisplayNode subclass directly */ \
+  if (node.methodOverrides & __nodeMethodOverride) { \
+    return [node __sel]; \
+  } else { \
+    /* Prevent an infinite loop in here if [super __sel] was called on a \
+     / _ASDisplayView subclass */ \
+    if (self->_methodOverrides & __viewMethodOverride) { \
+      /* Call through to views superclass as we expect super was called from the
+        _ASDisplayView subclass and a node subclass does not overwrite __sel */ \
+      return [self __##__sel]; \
+    } else { \
+      /* Call through to internal node __sel method that will consider the view in responding */ \
+      return [node __##__sel]; \
+    } \
+  } \
+}\
+/* All __ prefixed methods are called from ASDisplayNode to let the view decide in what UIResponder state they \
+are not overridden by a ASDisplayNode subclass */ \
+- (BOOL)__##__sel \
+{ \
+  return [super __sel]; \
+} \
+
+IMPLEMENT_RESPONDER_METHOD(canBecomeFirstResponder,
+                             ASDisplayNodeMethodOverrideCanBecomeFirstResponder,
+                             _ASDisplayViewMethodOverrideCanBecomeFirstResponder);
+IMPLEMENT_RESPONDER_METHOD(becomeFirstResponder,
+                             ASDisplayNodeMethodOverrideBecomeFirstResponder,
+                             _ASDisplayViewMethodOverrideBecomeFirstResponder);
+IMPLEMENT_RESPONDER_METHOD(canResignFirstResponder,
+                             ASDisplayNodeMethodOverrideCanResignFirstResponder,
+                             _ASDisplayViewMethodOverrideCanResignFirstResponder);
+IMPLEMENT_RESPONDER_METHOD(resignFirstResponder,
+                             ASDisplayNodeMethodOverrideResignFirstResponder,
+                             _ASDisplayViewMethodOverrideResignFirstResponder);
+IMPLEMENT_RESPONDER_METHOD(isFirstResponder,
+                             ASDisplayNodeMethodOverrideIsFirstResponder,
+                             _ASDisplayViewMethodOverrideIsFirstResponder);
 
 - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
 {
   // We forward responder-chain actions to our node if we can't handle them ourselves. See -targetForAction:withSender:.
   ASDisplayNode *node = _asyncdisplaykit_node; // Create strong reference to weak ivar.
   return ([super canPerformAction:action withSender:sender] || [node respondsToSelector:action]);
+}
+
+- (void)layoutMarginsDidChange
+{
+  ASDisplayNode *node = _asyncdisplaykit_node; // Create strong reference to weak ivar.
+  [super layoutMarginsDidChange];
+
+  [node layoutMarginsDidChange];
+}
+
+- (void)safeAreaInsetsDidChange
+{
+  ASDisplayNode *node = _asyncdisplaykit_node; // Create strong reference to weak ivar.
+  [super safeAreaInsetsDidChange];
+
+  [node safeAreaInsetsDidChange];
 }
 
 - (id)forwardingTargetForSelector:(SEL)aSelector

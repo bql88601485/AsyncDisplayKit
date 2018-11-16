@@ -1,11 +1,10 @@
 //
 //  ASAbstractLayoutController.mm
-//  AsyncDisplayKit
+//  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASAbstractLayoutController.h>
@@ -14,14 +13,14 @@
 
 #include <vector>
 
-extern ASRangeTuningParameters const ASRangeTuningParametersZero = {};
+ASRangeTuningParameters const ASRangeTuningParametersZero = {};
 
-extern BOOL ASRangeTuningParametersEqualToRangeTuningParameters(ASRangeTuningParameters lhs, ASRangeTuningParameters rhs)
+BOOL ASRangeTuningParametersEqualToRangeTuningParameters(ASRangeTuningParameters lhs, ASRangeTuningParameters rhs)
 {
   return lhs.leadingBufferScreenfuls == rhs.leadingBufferScreenfuls && lhs.trailingBufferScreenfuls == rhs.trailingBufferScreenfuls;
 }
 
-extern ASDirectionalScreenfulBuffer ASDirectionalScreenfulBufferHorizontal(ASScrollDirection scrollDirection,
+ASDirectionalScreenfulBuffer ASDirectionalScreenfulBufferHorizontal(ASScrollDirection scrollDirection,
                                                                     ASRangeTuningParameters rangeTuningParameters)
 {
   ASDirectionalScreenfulBuffer horizontalBuffer = {0, 0};
@@ -34,7 +33,7 @@ extern ASDirectionalScreenfulBuffer ASDirectionalScreenfulBufferHorizontal(ASScr
   return horizontalBuffer;
 }
 
-extern ASDirectionalScreenfulBuffer ASDirectionalScreenfulBufferVertical(ASScrollDirection scrollDirection,
+ASDirectionalScreenfulBuffer ASDirectionalScreenfulBufferVertical(ASScrollDirection scrollDirection,
                                                                   ASRangeTuningParameters rangeTuningParameters)
 {
   ASDirectionalScreenfulBuffer verticalBuffer = {0, 0};
@@ -47,7 +46,7 @@ extern ASDirectionalScreenfulBuffer ASDirectionalScreenfulBufferVertical(ASScrol
   return verticalBuffer;
 }
 
-extern CGRect CGRectExpandHorizontally(CGRect rect, ASDirectionalScreenfulBuffer buffer)
+CGRect CGRectExpandHorizontally(CGRect rect, ASDirectionalScreenfulBuffer buffer)
 {
   CGFloat negativeDirectionWidth = buffer.negativeDirection * rect.size.width;
   CGFloat positiveDirectionWidth = buffer.positiveDirection * rect.size.width;
@@ -56,7 +55,7 @@ extern CGRect CGRectExpandHorizontally(CGRect rect, ASDirectionalScreenfulBuffer
   return rect;
 }
 
-extern CGRect CGRectExpandVertically(CGRect rect, ASDirectionalScreenfulBuffer buffer)
+CGRect CGRectExpandVertically(CGRect rect, ASDirectionalScreenfulBuffer buffer)
 {
   CGFloat negativeDirectionHeight = buffer.negativeDirection * rect.size.height;
   CGFloat positiveDirectionHeight = buffer.positiveDirection * rect.size.height;
@@ -65,7 +64,7 @@ extern CGRect CGRectExpandVertically(CGRect rect, ASDirectionalScreenfulBuffer b
   return rect;
 }
 
-extern CGRect CGRectExpandToRangeWithScrollableDirections(CGRect rect, ASRangeTuningParameters tuningParameters,
+CGRect CGRectExpandToRangeWithScrollableDirections(CGRect rect, ASRangeTuningParameters tuningParameters,
                                                    ASScrollDirection scrollableDirections, ASScrollDirection scrollDirection)
 {
   // Can scroll horizontally - expand the range appropriately
@@ -167,13 +166,13 @@ extern CGRect CGRectExpandToRangeWithScrollableDirections(CGRect rect, ASRangeTu
 
 #pragma mark - Abstract Index Path Range Support
 
-- (NSSet<ASCollectionElement *> *)elementsForScrolling:(ASScrollDirection)scrollDirection rangeMode:(ASLayoutRangeMode)rangeMode rangeType:(ASLayoutRangeType)rangeType map:(ASElementMap *)map
+- (NSHashTable<ASCollectionElement *> *)elementsForScrolling:(ASScrollDirection)scrollDirection rangeMode:(ASLayoutRangeMode)rangeMode rangeType:(ASLayoutRangeType)rangeType map:(ASElementMap *)map
 {
   ASDisplayNodeAssertNotSupported();
   return nil;
 }
 
-- (void)allElementsForScrolling:(ASScrollDirection)scrollDirection rangeMode:(ASLayoutRangeMode)rangeMode displaySet:(NSSet<ASCollectionElement *> *__autoreleasing  _Nullable *)displaySet preloadSet:(NSSet<ASCollectionElement *> *__autoreleasing  _Nullable *)preloadSet map:(ASElementMap *)map
+- (void)allElementsForScrolling:(ASScrollDirection)scrollDirection rangeMode:(ASLayoutRangeMode)rangeMode displaySet:(NSHashTable<ASCollectionElement *> *__autoreleasing  _Nullable *)displaySet preloadSet:(NSHashTable<ASCollectionElement *> *__autoreleasing  _Nullable *)preloadSet map:(ASElementMap *)map
 {
   ASDisplayNodeAssertNotSupported();
 }

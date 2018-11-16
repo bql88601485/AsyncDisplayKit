@@ -1,9 +1,10 @@
 //
 //  ASLayoutSpec+Subclasses.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Michael Schneider on 9/15/16.
-//  Copyright © 2016 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <Foundation/Foundation.h>
@@ -15,27 +16,6 @@ NS_ASSUME_NONNULL_BEGIN
 @protocol ASLayoutElement;
 
 @interface ASLayoutSpec (Subclassing)
-
-/**
- * Helper method for finalLayoutElement support
- *
- * @warning If you are getting recursion crashes here after implementing finalLayoutElement, make sure
- * that you are setting isFinalLayoutElement flag to YES. This must be one BEFORE adding a child
- * to the new ASLayoutElement.
- *
- * For example:
- * - (id<ASLayoutElement>)finalLayoutElement
- * {
- *   ASInsetLayoutSpec *insetSpec = [[ASInsetLayoutSpec alloc] init];
- *   insetSpec.insets = UIEdgeInsetsMake(10,10,10,10);
- *   insetSpec.isFinalLayoutElement = YES;
- *   [insetSpec setChild:self];
- *   return insetSpec;
- * }
- *
- * @see finalLayoutElement
- */
-- (id<ASLayoutElement>)layoutElementToAddFromLayoutElement:(id<ASLayoutElement>)child;
 
 /**
  * Adds a child with the given identifier to this layout spec.
@@ -72,7 +52,7 @@ NS_ASSUME_NONNULL_BEGIN
  *
  * @discussion When being used as a sublayout, this property must not equal CGPointNull.
  */
-@property (nonatomic, assign, readwrite) CGPoint position;
+@property (nonatomic) CGPoint position;
 
 @end
 

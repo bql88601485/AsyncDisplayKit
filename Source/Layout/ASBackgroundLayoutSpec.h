@@ -1,11 +1,10 @@
 //
 //  ASBackgroundLayoutSpec.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASLayoutSpec.h>
@@ -20,7 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  * Background layoutElement for this layout spec
  */
-@property (nonatomic, strong) id<ASLayoutElement> background;
+@property (nonatomic) id<ASLayoutElement> background;
 
 /**
  * Creates and returns an ASBackgroundLayoutSpec object
@@ -28,7 +27,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @param child A child that is laid out to determine the size of this spec.
  * @param background A layoutElement object that is laid out behind the child.
  */
-+ (instancetype)backgroundLayoutSpecWithChild:(id<ASLayoutElement>)child background:(id<ASLayoutElement>)background AS_WARN_UNUSED_RESULT;
++ (instancetype)backgroundLayoutSpecWithChild:(id<ASLayoutElement>)child background:(id<ASLayoutElement>)background NS_RETURNS_RETAINED AS_WARN_UNUSED_RESULT;
 
 @end
 

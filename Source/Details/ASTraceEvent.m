@@ -1,9 +1,10 @@
 //
 //  ASTraceEvent.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 9/13/16.
-//  Copyright © 2016 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASTraceEvent.h>
@@ -12,8 +13,8 @@
 static NSString *const ASTraceEventThreadDescriptionKey = @"ASThreadTraceEventDescription";
 
 @interface ASTraceEvent ()
-@property (nonatomic, strong, readonly) NSString *objectDescription;
-@property (nonatomic, strong, readonly) NSString *threadDescription;
+@property (nonatomic, readonly) NSString *objectDescription;
+@property (nonatomic, readonly) NSString *threadDescription;
 @end
 
 @implementation ASTraceEvent

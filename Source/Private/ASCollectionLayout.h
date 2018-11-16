@@ -1,10 +1,12 @@
 //
 //  ASCollectionLayout.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Huy Nguyen on 28/2/17.
-//  Copyright © 2017 Facebook. All rights reserved.
+//  Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
+
+#ifndef MINIMAL_ASDK
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
@@ -16,7 +18,6 @@
 NS_ASSUME_NONNULL_BEGIN
 
 AS_SUBCLASSING_RESTRICTED
-
 @interface ASCollectionLayout : UICollectionViewLayout
 
 /**
@@ -30,7 +31,7 @@ AS_SUBCLASSING_RESTRICTED
  */
 @property (nonatomic, weak) ASCollectionNode *collectionNode;
 
-@property (nonatomic, strong, readonly) id<ASCollectionLayoutDelegate> layoutDelegate;
+@property (nonatomic, readonly) id<ASCollectionLayoutDelegate> layoutDelegate;
 
 /**
  * Initializes with a layout delegate.
@@ -49,3 +50,5 @@ AS_SUBCLASSING_RESTRICTED
 @end
 
 NS_ASSUME_NONNULL_END
+
+#endif

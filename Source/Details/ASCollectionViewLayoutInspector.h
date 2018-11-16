@@ -1,10 +1,13 @@
 //
 //  ASCollectionViewLayoutInspector.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Garrett Moon on 11/19/16.
-//  Copyright © 2016 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
+
+#ifndef MINIMAL_ASDK
 
 #import <Foundation/Foundation.h>
 #import <AsyncDisplayKit/ASDimension.h>
@@ -16,7 +19,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-extern ASSizeRange NodeConstrainedSizeForScrollDirection(ASCollectionView *collectionView);
+AS_EXTERN ASSizeRange NodeConstrainedSizeForScrollDirection(ASCollectionView *collectionView);
 
 @protocol ASCollectionViewLayoutInspecting <NSObject>
 
@@ -77,9 +80,9 @@ extern ASSizeRange NodeConstrainedSizeForScrollDirection(ASCollectionView *colle
  * @warning This class is not meant to be subclassed and will be restricted in the future.
  */
 @interface ASCollectionViewLayoutInspector : NSObject <ASCollectionViewLayoutInspecting>
-
-- (instancetype)initWithCollectionView:(ASCollectionView *)collectionView ASDISPLAYNODE_DEPRECATED_MSG("Use -init instead.");
-
 @end
 
+
 NS_ASSUME_NONNULL_END
+
+#endif

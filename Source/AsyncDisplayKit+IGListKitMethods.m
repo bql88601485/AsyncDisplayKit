@@ -1,9 +1,10 @@
 //
 //  AsyncDisplayKit+IGListKitMethods.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 2/27/17.
-//  Copyright © 2017 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASAvailability.h>
@@ -13,12 +14,15 @@
 #import "AsyncDisplayKit+IGListKitMethods.h"
 #import <AsyncDisplayKit/ASAssert.h>
 #import <AsyncDisplayKit/_ASCollectionViewCell.h>
+#import <AsyncDisplayKit/_ASCollectionReusableView.h>
+
 
 @implementation ASIGListSectionControllerMethods
 
-+ (__kindof UICollectionViewCell *)cellForItemAtIndex:(NSInteger)index sectionController:(IGListSectionController<IGListSectionType> *)sectionController
++ (__kindof UICollectionViewCell *)cellForItemAtIndex:(NSInteger)index sectionController:(IGListSectionController *)sectionController
 {
-  return [sectionController.collectionContext dequeueReusableCellOfClass:[_ASCollectionViewCell class] forSectionController:sectionController atIndex:index];
+  // Cast to id for backwards-compatibility until 3.0.0 is officially released – IGListSectionType was removed. This is safe.
+  return [sectionController.collectionContext dequeueReusableCellOfClass:[_ASCollectionViewCell class] forSectionController:(id)sectionController atIndex:index];
 }
 
 + (CGSize)sizeForItemAtIndex:(NSInteger)index
@@ -33,9 +37,9 @@
 
 + (__kindof UICollectionReusableView *)viewForSupplementaryElementOfKind:(NSString *)elementKind
                                                                  atIndex:(NSInteger)index
-                                                       sectionController:(IGListSectionController<IGListSectionType> *)sectionController
+                                                       sectionController:(IGListSectionController *)sectionController
 {
-  return [sectionController.collectionContext dequeueReusableSupplementaryViewOfKind:elementKind forSectionController:sectionController class:[UICollectionReusableView class] atIndex:index];
+  return [sectionController.collectionContext dequeueReusableSupplementaryViewOfKind:elementKind forSectionController:(id)sectionController class:[_ASCollectionReusableView class] atIndex:index];
 }
 
 + (CGSize)sizeForSupplementaryViewOfKind:(NSString *)elementKind atIndex:(NSInteger)index

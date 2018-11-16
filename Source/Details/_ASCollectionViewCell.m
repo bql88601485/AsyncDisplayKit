@@ -1,51 +1,74 @@
 //
 //  _ASCollectionViewCell.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 1/30/17.
-//  Copyright © 2017 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
+#ifndef MINIMAL_ASDK
 #import "_ASCollectionViewCell.h"
-#import "ASCellNode+Internal.h"
-#import <AsyncDisplayKit/AsyncDisplayKit.h>
+#import <AsyncDisplayKit/ASCellNode+Internal.h>
+#import <AsyncDisplayKit/ASCollectionElement.h>
+#import <AsyncDisplayKit/ASInternalHelpers.h>
 
 @implementation _ASCollectionViewCell
 
-- (void)setNode:(ASCellNode *)node
+- (ASCellNode *)node
+{
+  return self.element.node;
+}
+
+- (void)setElement:(ASCollectionElement *)element
 {
   ASDisplayNodeAssertMainThread();
+  ASCellNode *node = element.node;
   node.layoutAttributes = _layoutAttributes;
-  _node = node;
+  _element = element;
   
   [node __setSelectedFromUIKit:self.selected];
   [node __setHighlightedFromUIKit:self.highlighted];
 }
 
+- (BOOL)consumesCellNodeVisibilityEvents
+{
+  ASCellNode *node = self.node;
+  if (node == nil) {
+    return NO;
+  }
+  return ASSubclassOverridesSelector([ASCellNode class], [node class], @selector(cellNodeVisibilityEvent:inScrollView:withCellFrame:));
+}
+
+- (void)cellNodeVisibilityEvent:(ASCellNodeVisibilityEvent)event inScrollView:(UIScrollView *)scrollView
+{
+  [self.node cellNodeVisibilityEvent:event inScrollView:scrollView withCellFrame:self.frame];
+}
+
 - (void)setSelected:(BOOL)selected
 {
   [super setSelected:selected];
-  [_node __setSelectedFromUIKit:selected];
+  [self.node __setSelectedFromUIKit:selected];
 }
 
 - (void)setHighlighted:(BOOL)highlighted
 {
   [super setHighlighted:highlighted];
-  [_node __setHighlightedFromUIKit:highlighted];
+  [self.node __setHighlightedFromUIKit:highlighted];
 }
 
 - (void)setLayoutAttributes:(UICollectionViewLayoutAttributes *)layoutAttributes
 {
   _layoutAttributes = layoutAttributes;
-  _node.layoutAttributes = layoutAttributes;
+  self.node.layoutAttributes = layoutAttributes;
 }
 
 - (void)prepareForReuse
 {
   self.layoutAttributes = nil;
 
-  // Need to clear node pointer before UIKit calls setSelected:NO / setHighlighted:NO on its cells
-  self.node = nil;
+  // Need to clear element before UIKit calls setSelected:NO / setHighlighted:NO on its cells
+  self.element = nil;
   [super prepareForReuse];
 }
 
@@ -95,4 +118,5 @@
 
 @end
 
+#endif
 #endif

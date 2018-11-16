@@ -1,9 +1,10 @@
 //
 //  ASImageNode+Private.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Michael Schneider on 3/20/17.
-//  Copyright © 2017 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #pragma once

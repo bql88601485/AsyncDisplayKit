@@ -1,10 +1,13 @@
 //
 //  ASSupplementaryNodeSource.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 1/19/17.
-//  Copyright © 2017 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
+
+#ifndef MINIMAL_ASDK
 
 #import <Foundation/Foundation.h>
 #import <AsyncDisplayKit/ASBlockTypes.h>
@@ -40,3 +43,5 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 NS_ASSUME_NONNULL_END
+
+#endif

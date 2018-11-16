@@ -1,9 +1,10 @@
 //
 //  ASTraceEvent.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 9/13/16.
-//  Copyright © 2016 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <Foundation/Foundation.h>
@@ -23,7 +24,7 @@ AS_SUBCLASSING_RESTRICTED
 
 // Will be nil unless AS_SAVE_EVENT_BACKTRACES=1 (default=0)
 @property (nonatomic, nullable, readonly) NSArray<NSString *> *backtrace;
-@property (nonatomic, strong, readonly) NSString *message;
+@property (nonatomic, readonly) NSString *message;
 @property (nonatomic, readonly) NSTimeInterval timestamp;
 
 @end

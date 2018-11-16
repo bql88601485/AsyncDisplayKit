@@ -1,18 +1,22 @@
 //
 //  ASMutableElementMap.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 2/23/17.
-//  Copyright © 2017 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
+
+#ifndef MINIMAL_ASDK
 
 #import <Foundation/Foundation.h>
 #import <AsyncDisplayKit/ASBaseDefines.h>
 #import <AsyncDisplayKit/ASElementMap.h>
+#import <AsyncDisplayKit/ASIntegerMap.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class ASSection, ASCollectionElement;
+@class ASSection, ASCollectionElement, _ASHierarchyChangeSet;
 
 /**
  * This mutable version will be removed in the future. It's only here now to keep the diff small
@@ -27,10 +31,10 @@ AS_SUBCLASSING_RESTRICTED
 
 - (void)insertSection:(ASSection *)section atIndex:(NSInteger)index;
 
-- (void)removeAllSectionContexts;
+- (void)removeAllSections;
 
 /// Only modifies the array of ASSection * objects
-- (void)removeSectionContextsAtIndexes:(NSIndexSet *)indexes;
+- (void)removeSectionsAtIndexes:(NSIndexSet *)indexes;
 
 - (void)removeAllElements;
 
@@ -38,11 +42,19 @@ AS_SUBCLASSING_RESTRICTED
 
 - (void)removeSectionsOfItems:(NSIndexSet *)itemSections;
 
-- (void)removeSupplementaryElementsInSections:(NSIndexSet *)sections;
+- (void)removeSupplementaryElementsAtIndexPaths:(NSArray<NSIndexPath *> *)indexPaths kind:(NSString *)kind;
 
 - (void)insertEmptySectionsOfItemsAtIndexes:(NSIndexSet *)sections;
 
 - (void)insertElement:(ASCollectionElement *)element atIndexPath:(NSIndexPath *)indexPath;
+
+/**
+ * Update the index paths for all supplementary elements to account for section-level
+ * deletes, moves, inserts. This must be called before adding new supplementary elements.
+ *
+ * This also deletes any supplementary elements in deleted sections.
+ */
+- (void)migrateSupplementaryElementsWithSectionMapping:(ASIntegerMap *)mapping;
 
 @end
 
@@ -50,3 +62,5 @@ AS_SUBCLASSING_RESTRICTED
 @end
 
 NS_ASSUME_NONNULL_END
+
+#endif

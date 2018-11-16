@@ -1,26 +1,29 @@
 //
 //  ASPhotosFrameworkImageRequest.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 9/25/15.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
-//
+
+#import <AsyncDisplayKit/ASAvailability.h>
+
+#if AS_USE_PHOTOS
 
 #import <UIKit/UIKit.h>
 #import <Photos/Photos.h>
+#import <AsyncDisplayKit/ASBaseDefines.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
-extern NSString *const ASPhotosURLScheme;
+AS_EXTERN NSString *const ASPhotosURLScheme;
 
 /**
  @abstract Use ASPhotosFrameworkImageRequest to encapsulate all the information needed to request an image from
  the Photos framework and store it in a URL.
  */
+API_AVAILABLE(ios(8.0), tvos(10.0))
 @interface ASPhotosFrameworkImageRequest : NSObject <NSCopying>
 
 - (instancetype)initWithAssetIdentifier:(NSString *)assetIdentifier NS_DESIGNATED_INITIALIZER;
@@ -53,13 +56,18 @@ extern NSString *const ASPhotosURLScheme;
  @discussion Some properties of this object are ignored when converting this request into a URL.
  As of iOS SDK 9.0, these properties are `progressHandler` and `synchronous`.
  */
-@property (nonatomic, strong) PHImageRequestOptions *options;
+@property (nonatomic) PHImageRequestOptions *options;
 
 /**
  @return A new URL converted from this request.
  */
 @property (nonatomic, readonly) NSURL *url;
 
+- (instancetype)init NS_UNAVAILABLE;
++ (instancetype)new NS_UNAVAILABLE;
+
 @end
 
 NS_ASSUME_NONNULL_END
+
+#endif // AS_USE_PHOTOS

@@ -1,18 +1,10 @@
 //
 //  KittenNode.mm
-//  Sample
+//  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  FACEBOOK BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-//  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-//  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import "KittenNode.h"
@@ -98,7 +90,20 @@ static const CGFloat kInnerPadding = 10.0f;
   [self addSubnode:_imageNode];
   
   // lorem ipsum text, plus some nice styling
+
   _textNode = [[ASTextNode alloc] init];
+  _textNode.shadowColor = [UIColor blackColor].CGColor;
+  _textNode.shadowRadius = 3;
+  _textNode.shadowOffset = CGSizeMake(-2, -2);
+  _textNode.shadowOpacity = 0.3;
+  if (_textNode.usingExperiment) {
+    _textNode.backgroundColor = [UIColor colorWithRed:0.9 green:0.9 blue:1 alpha:1];
+  } else {
+    _textNode.backgroundColor = [UIColor colorWithRed:1 green:0.9 blue:0.9 alpha:1];
+  }
+  _textNode.maximumNumberOfLines = 2;
+  _textNode.truncationAttributedText = [[NSAttributedString alloc] initWithString:@"…"];
+  _textNode.additionalTruncationMessage = [[NSAttributedString alloc] initWithString:@"More"];
   _textNode.attributedText = [[NSAttributedString alloc] initWithString:[self kittyIpsum] attributes:[self textStyle]];
   [self addSubnode:_textNode];
   

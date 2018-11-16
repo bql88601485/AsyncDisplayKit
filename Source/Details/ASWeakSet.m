@@ -1,19 +1,16 @@
 //
 //  ASWeakSet.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 1/7/16.
-//
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASWeakSet.h>
 
 @interface ASWeakSet<__covariant ObjectType> ()
-@property (nonatomic, strong, readonly) NSHashTable<ObjectType> *hashTable;
+@property (nonatomic, readonly) NSHashTable<ObjectType> *hashTable;
 @end
 
 @implementation ASWeakSet
@@ -22,7 +19,7 @@
 {
   self = [super init];
   if (self) {
-    _hashTable = [NSHashTable hashTableWithOptions:NSPointerFunctionsWeakMemory | NSPointerFunctionsObjectPointerPersonality];
+    _hashTable = [NSHashTable hashTableWithOptions:NSHashTableWeakMemory | NSHashTableObjectPointerPersonality];
   }
   return self;
 }

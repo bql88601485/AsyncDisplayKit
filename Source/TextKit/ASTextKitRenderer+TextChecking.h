@@ -1,11 +1,10 @@
 //
 //  ASTextKitRenderer+TextChecking.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASTextKitRenderer.h>
@@ -19,7 +18,7 @@ static uint64_t const ASTextKitTextCheckingTypeTruncation =           1ULL << 34
 @class ASTextKitEntityAttribute;
 
 @interface ASTextKitTextCheckingResult : NSTextCheckingResult
-@property (nonatomic, strong, readonly) ASTextKitEntityAttribute *entityAttribute;
+@property (nonatomic, readonly) ASTextKitEntityAttribute *entityAttribute;
 @end
 
 @interface ASTextKitRenderer (TextChecking)

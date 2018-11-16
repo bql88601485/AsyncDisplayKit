@@ -1,15 +1,13 @@
 //
 //  ASCellNode+Internal.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Max Gu on 2/19/16.
-//
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
+#ifndef MINIMAL_ASDK
 #import <AsyncDisplayKit/ASCellNode.h>
 
 NS_ASSUME_NONNULL_BEGIN
@@ -17,19 +15,6 @@ NS_ASSUME_NONNULL_BEGIN
 @class ASCollectionElement;
 
 @protocol ASCellNodeInteractionDelegate <NSObject>
-
-/**
- * Notifies the delegate that the specified cell node has done a relayout.
- * The notification is done on main thread.
- *
- * This will not be called due to measurement passes before the node has loaded
- * its view, even if triggered by -setNeedsLayout, as it is assumed these are
- * not relevant to UIKit.  Indeed, these calls can cause consistency issues.
- *
- * @param node A node informing the delegate about the relayout.
- * @param sizeChanged `YES` if the node's `calculatedSize` changed during the relayout, `NO` otherwise.
- */
-- (void)nodeDidRelayout:(ASCellNode *)node sizeChanged:(BOOL)sizeChanged;
 
 /**
  * Notifies the delegate that a specified cell node invalidates it's size what could result into a size change.
@@ -65,14 +50,30 @@ NS_ASSUME_NONNULL_BEGIN
  *   that it's always safe simply to retain it, and copy if needed. Since @c UICollectionViewLayoutAttributes
  *   is always mutable, @c copy is never "free" like it is for e.g. NSString.
  */
-@property (nonatomic, strong, nullable) UICollectionViewLayoutAttributes *layoutAttributes;
+@property (nullable, nonatomic) UICollectionViewLayoutAttributes *layoutAttributes;
 
 @property (weak, nullable) ASCollectionElement *collectionElement;
 
-@property (nonatomic, weak, nullable) ASDisplayNode *owningNode;
+@property (weak, nullable) id<ASRangeManagingNode> owningNode;
 
-@property (nonatomic, assign) BOOL shouldUseUIKitCell;
+@property (nonatomic, readonly) BOOL shouldUseUIKitCell;
+
+@end
+
+@class ASWrapperCellNode;
+
+typedef CGSize (^ASSizeForItemBlock)(ASWrapperCellNode *node, CGSize collectionSize);
+typedef UICollectionViewCell * _Nonnull(^ASCellForItemBlock)(ASWrapperCellNode *node);
+typedef UICollectionReusableView * _Nonnull(^ASViewForSupplementaryBlock)(ASWrapperCellNode *node);
+
+@interface ASWrapperCellNode : ASCellNode
+
+@property (nonatomic, readonly) ASSizeForItemBlock sizeForItemBlock;
+@property (nonatomic, readonly) ASCellForItemBlock cellForItemBlock;
+@property (nonatomic, readonly) ASViewForSupplementaryBlock viewForSupplementaryBlock;
 
 @end
 
 NS_ASSUME_NONNULL_END
+
+#endif

@@ -1,15 +1,16 @@
 //
 //  ASViewControllerTests.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 8/25/16.
-//  Copyright © 2016 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <XCTest/XCTest.h>
 #import <AsyncDisplayKit/AsyncDisplayKit.h>
 #import <OCMock/OCMock.h>
-#import <OCMock/NSInvocation+OCMAdditions.h>
+#import "NSInvocation+ASTestHelpers.h"
 
 @interface ASViewControllerTests : XCTestCase
 
@@ -51,7 +52,7 @@
   [[[animator expect] andReturnValue:@0.3] transitionDuration:[OCMArg any]];
   XCTestExpectation *e = [self expectationWithDescription:@"Transition completed"];
   [[[animator expect] andDo:^(NSInvocation *invocation) {
-    id<UIViewControllerContextTransitioning> ctx = [invocation getArgumentAtIndexAsObject:2];
+    id<UIViewControllerContextTransitioning> ctx = [invocation as_argumentAtIndexAsObject:2];
     UIView *container = [ctx containerView];
     [container addSubview:vc.view];
     vc.view.alpha = 0;

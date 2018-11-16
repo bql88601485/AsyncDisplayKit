@@ -1,16 +1,15 @@
 //
 //  ASTabBarController.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Garrett Moon on 5/10/16.
-//
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
+#ifndef MINIMAL_ASDK
 #import <AsyncDisplayKit/ASTabBarController.h>
+#import <AsyncDisplayKit/ASLog.h>
 
 @implementation ASTabBarController
 {
@@ -67,14 +66,22 @@ ASVisibilityDepthImplementation;
 
 - (void)setSelectedIndex:(NSUInteger)selectedIndex
 {
+  as_activity_create_for_scope("Set selected index of ASTabBarController");
+  as_log_info(ASNodeLog(), "Selected tab %tu of %@", selectedIndex, self);
+
   [super setSelectedIndex:selectedIndex];
   [self visibilityDepthDidChange];
 }
 
 - (void)setSelectedViewController:(__kindof UIViewController *)selectedViewController
 {
+  as_activity_create_for_scope("Set selected view controller of ASTabBarController");
+  as_log_info(ASNodeLog(), "Selected view controller %@ of %@", selectedViewController, self);
+
   [super setSelectedViewController:selectedViewController];
   [self visibilityDepthDidChange];
 }
 
 @end
+
+#endif

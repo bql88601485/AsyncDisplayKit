@@ -1,11 +1,11 @@
 //
 //  NSIndexSet+ASHelpers.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 6/23/16.
-//  Copyright © 2016 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
-
 
 // UIKit indexPath helpers
 #import <UIKit/UIKit.h>
@@ -16,7 +16,7 @@
 
 - (NSIndexSet *)as_indexesByMapping:(NSUInteger (^)(NSUInteger))block
 {
-  NSMutableIndexSet *result = [NSMutableIndexSet indexSet];
+  NSMutableIndexSet *result = [[NSMutableIndexSet alloc] init];
   [self enumerateRangesUsingBlock:^(NSRange range, BOOL * _Nonnull stop) {
     for (NSUInteger i = range.location; i < NSMaxRange(range); i++) {
       NSUInteger newIndex = block(i);
@@ -30,7 +30,7 @@
 
 - (NSIndexSet *)as_intersectionWithIndexes:(NSIndexSet *)indexes
 {
-  NSMutableIndexSet *result = [NSMutableIndexSet indexSet];
+  NSMutableIndexSet *result = [[NSMutableIndexSet alloc] init];
   [self enumerateRangesUsingBlock:^(NSRange range, BOOL * _Nonnull stop) {
     [indexes enumerateRangesInRange:range options:kNilOptions usingBlock:^(NSRange range, BOOL * _Nonnull stop) {
       [result addIndexesInRange:range];
@@ -41,7 +41,7 @@
 
 + (NSIndexSet *)as_indexSetFromIndexPaths:(NSArray<NSIndexPath *> *)indexPaths inSection:(NSUInteger)section
 {
-  NSMutableIndexSet *result = [NSMutableIndexSet indexSet];
+  NSMutableIndexSet *result = [[NSMutableIndexSet alloc] init];
   for (NSIndexPath *indexPath in indexPaths) {
     if (indexPath.section == section) {
       [result addIndex:indexPath.item];
@@ -81,20 +81,9 @@
 
 + (NSIndexSet *)as_sectionsFromIndexPaths:(NSArray<NSIndexPath *> *)indexPaths
 {
-  NSMutableIndexSet *result = [NSMutableIndexSet indexSet];
+  NSMutableIndexSet *result = [[NSMutableIndexSet alloc] init];
   for (NSIndexPath *indexPath in indexPaths) {
     [result addIndex:indexPath.section];
-  }
-  return result;
-}
-
-- (NSArray<NSIndexPath *> *)as_filterIndexPathsBySection:(id<NSFastEnumeration>)indexPaths
-{
-  NSMutableArray *result = [NSMutableArray array];
-  for (NSIndexPath *indexPath in indexPaths) {
-    if ([self containsIndex:indexPath.section]) {
-      [result addObject:indexPath];
-    }
   }
   return result;
 }

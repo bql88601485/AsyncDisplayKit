@@ -1,15 +1,15 @@
 //
 //  ASCALayerTests.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 9/2/16.
-//  Copyright © 2016 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <XCTest/XCTest.h>
 
 #import <OCMock/OCMock.h>
-#import <OCMock/NSInvocation+OCMAdditions.h>
 
 /**
  * Tests that confirm what we know about Core Animation behavior.

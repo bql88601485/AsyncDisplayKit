@@ -1,14 +1,13 @@
 //
 //  ASPINRemoteImageDownloader.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Garrett Moon on 2/5/16.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
-//
+
+#ifndef MINIMAL_ASDK
 
 #import <AsyncDisplayKit/ASAvailability.h>
 
@@ -19,12 +18,18 @@
 #import <AsyncDisplayKit/ASThread.h>
 #import <AsyncDisplayKit/ASImageContainerProtocolCategories.h>
 
-#if __has_include (<PINRemoteImage/PINAnimatedImage.h>)
+#if __has_include (<PINRemoteImage/PINGIFAnimatedImage.h>)
 #define PIN_ANIMATED_AVAILABLE 1
-#import <PINRemoteImage/PINAnimatedImage.h>
+#import <PINRemoteImage/PINCachedAnimatedImage.h>
 #import <PINRemoteImage/PINAlternateRepresentationProvider.h>
 #else
 #define PIN_ANIMATED_AVAILABLE 0
+#endif
+
+#if __has_include(<webp/decode.h>)
+#define PIN_WEBP_AVAILABLE  1
+#else
+#define PIN_WEBP_AVAILABLE  0
 #endif
 
 #import <PINRemoteImage/PINRemoteImageManager.h>
@@ -34,42 +39,37 @@
 #if PIN_ANIMATED_AVAILABLE
 
 @interface ASPINRemoteImageDownloader () <PINRemoteImageManagerAlternateRepresentationProvider>
-
 @end
 
-@interface PINAnimatedImage (ASPINRemoteImageDownloader) <ASAnimatedImageProtocol>
-
+@interface PINCachedAnimatedImage (ASPINRemoteImageDownloader) <ASAnimatedImageProtocol>
 @end
 
-@implementation PINAnimatedImage (ASPINRemoteImageDownloader)
-
-- (void)setCoverImageReadyCallback:(void (^)(UIImage * _Nonnull))coverImageReadyCallback
-{
-  self.infoCompletion = coverImageReadyCallback;
-}
-
-- (void (^)(UIImage * _Nonnull))coverImageReadyCallback
-{
-  return self.infoCompletion;
-}
-
-- (void)setPlaybackReadyCallback:(dispatch_block_t)playbackReadyCallback
-{
-  self.fileReady = playbackReadyCallback;
-}
-
-- (dispatch_block_t)playbackReadyCallback
-{
-  return self.fileReady;
-}
+@implementation PINCachedAnimatedImage (ASPINRemoteImageDownloader)
 
 - (BOOL)isDataSupported:(NSData *)data
 {
-  return [data pin_isGIF];
+    if ([data pin_isGIF]) {
+        return YES;
+    }
+#if PIN_WEBP_AVAILABLE
+    else if ([data pin_isAnimatedWebP]) {
+        return YES;
+    }
+#endif
+  return NO;
 }
 
 @end
 #endif
+
+// Declare two key methods on PINCache objects, avoiding a direct dependency on PINCache.h
+@protocol ASPINCache
+- (id)diskCache;
+@end
+
+@protocol ASPINDiskCache
+@property NSUInteger byteLimit;
+@end
 
 @interface ASPINRemoteImageManager : PINRemoteImageManager
 @end
@@ -79,20 +79,34 @@
 //Share image cache with sharedImageManager image cache.
 - (id <PINRemoteImageCaching>)defaultImageCache
 {
-  return [[PINRemoteImageManager sharedImageManager] cache];
+  static dispatch_once_t onceToken;
+  static id <PINRemoteImageCaching> cache = nil;
+  dispatch_once(&onceToken, ^{
+    cache = [[PINRemoteImageManager sharedImageManager] cache];
+    if ([cache respondsToSelector:@selector(diskCache)]) {
+      id diskCache = [(id <ASPINCache>)cache diskCache];
+      if ([diskCache respondsToSelector:@selector(setByteLimit:)]) {
+        // Set a default byteLimit. PINCache recently implemented a 50MB default (PR #201).
+        // Ensure that older versions of PINCache also have a byteLimit applied.
+        // NOTE: Using 20MB limit while large cache initialization is being optimized (Issue #144).
+        ((id <ASPINDiskCache>)diskCache).byteLimit = 20 * 1024 * 1024;
+      }
+    }
+  });
+  return cache;
 }
 
 @end
 
-
 static ASPINRemoteImageDownloader *sharedDownloader = nil;
+static PINRemoteImageManager *sharedPINRemoteImageManager = nil;
 
 @interface ASPINRemoteImageDownloader ()
 @end
 
 @implementation ASPINRemoteImageDownloader
 
-+ (instancetype)sharedDownloader
++ (ASPINRemoteImageDownloader *)sharedDownloader NS_RETURNS_RETAINED
 {
 
   static dispatch_once_t onceToken = 0;
@@ -105,43 +119,55 @@ static ASPINRemoteImageDownloader *sharedDownloader = nil;
 + (void)setSharedImageManagerWithConfiguration:(nullable NSURLSessionConfiguration *)configuration
 {
   NSAssert(sharedDownloader == nil, @"Singleton has been created and session can no longer be configured.");
-  __unused PINRemoteImageManager *sharedManager = [self sharedPINRemoteImageManagerWithConfiguration:configuration];
+  NSAssert1(sharedPINRemoteImageManager == nil, @"An instance of %@ has been set. Either configuration or preconfigured image manager can be set at a time and only once.", [[sharedPINRemoteImageManager class] description]);
+  __unused PINRemoteImageManager *sharedManager = [self sharedPINRemoteImageManagerWithConfiguration:configuration preconfiguredPINRemoteImageManager:nil];
 }
 
-+ (PINRemoteImageManager *)sharedPINRemoteImageManagerWithConfiguration:(NSURLSessionConfiguration *)configuration
++ (void)setSharedPreconfiguredRemoteImageManager:(nullable PINRemoteImageManager *)preconfiguredPINRemoteImageManager
 {
-  static ASPINRemoteImageManager *sharedPINRemoteImageManager;
+  NSAssert(sharedDownloader == nil, @"Singleton has been created and session can no longer be configured.");
+  NSAssert1(sharedPINRemoteImageManager == nil, @"An instance of %@ has been set. Either configuration or preconfigured image manager can be set at a time and only once.", [[sharedPINRemoteImageManager class] description]);
+  __unused PINRemoteImageManager *sharedManager = [self sharedPINRemoteImageManagerWithConfiguration:nil preconfiguredPINRemoteImageManager:preconfiguredPINRemoteImageManager];
+}
+
++ (PINRemoteImageManager *)sharedPINRemoteImageManagerWithConfiguration:(NSURLSessionConfiguration *)configuration preconfiguredPINRemoteImageManager:(PINRemoteImageManager *)preconfiguredPINRemoteImageManager
+{
+  NSAssert(!(configuration != nil && preconfiguredPINRemoteImageManager != nil), @"Either configuration or preconfigured image manager can be set at a time.");
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
 
+    if (preconfiguredPINRemoteImageManager) {
+      sharedPINRemoteImageManager = preconfiguredPINRemoteImageManager;
+    } else {
 #if PIN_ANIMATED_AVAILABLE
-    // Check that Carthage users have linked both PINRemoteImage & PINCache by testing for one file each
-    if (!(NSClassFromString(@"PINRemoteImageManager"))) {
-      NSException *e = [NSException
-                        exceptionWithName:@"FrameworkSetupException"
-                        reason:@"Missing the path to the PINRemoteImage framework."
-                        userInfo:nil];
-      @throw e;
-    }
-    if (!(NSClassFromString(@"PINCache"))) {
-      NSException *e = [NSException
-                        exceptionWithName:@"FrameworkSetupException"
-                        reason:@"Missing the path to the PINCache framework."
-                        userInfo:nil];
-      @throw e;
-    }
-    sharedPINRemoteImageManager = [[ASPINRemoteImageManager alloc] initWithSessionConfiguration:configuration
-                                                              alternativeRepresentationProvider:[self sharedDownloader]];
+      // Check that Carthage users have linked both PINRemoteImage & PINCache by testing for one file each
+      if (!(NSClassFromString(@"PINRemoteImageManager"))) {
+        NSException *e = [NSException
+                          exceptionWithName:@"FrameworkSetupException"
+                          reason:@"Missing the path to the PINRemoteImage framework."
+                          userInfo:nil];
+        @throw e;
+      }
+      if (!(NSClassFromString(@"PINCache"))) {
+        NSException *e = [NSException
+                          exceptionWithName:@"FrameworkSetupException"
+                          reason:@"Missing the path to the PINCache framework."
+                          userInfo:nil];
+        @throw e;
+      }
+      sharedPINRemoteImageManager = [[ASPINRemoteImageManager alloc] initWithSessionConfiguration:configuration
+                                                                alternativeRepresentationProvider:[self sharedDownloader]];
 #else
-    sharedPINRemoteImageManager = [[ASPINRemoteImageManager alloc] initWithSessionConfiguration:configuration];
+      sharedPINRemoteImageManager = [[ASPINRemoteImageManager alloc] initWithSessionConfiguration:configuration];
 #endif
+    }
   });
   return sharedPINRemoteImageManager;
 }
 
 - (PINRemoteImageManager *)sharedPINRemoteImageManager
 {
-  return [ASPINRemoteImageDownloader sharedPINRemoteImageManagerWithConfiguration:nil];
+  return [ASPINRemoteImageDownloader sharedPINRemoteImageManagerWithConfiguration:nil preconfiguredPINRemoteImageManager:nil];
 }
 
 - (BOOL)sharedImageManagerSupportsMemoryRemoval
@@ -159,7 +185,7 @@ static ASPINRemoteImageDownloader *sharedDownloader = nil;
 #if PIN_ANIMATED_AVAILABLE
 - (nullable id <ASAnimatedImageProtocol>)animatedImageWithData:(NSData *)animatedImageData
 {
-  return [[PINAnimatedImage alloc] initWithAnimatedImageData:animatedImageData];
+  return [[PINCachedAnimatedImage alloc] initWithAnimatedImageData:animatedImageData];
 }
 #endif
 
@@ -180,15 +206,19 @@ static ASPINRemoteImageDownloader *sharedDownloader = nil;
              callbackQueue:(dispatch_queue_t)callbackQueue
                 completion:(ASImageCacherCompletion)completion
 {
-  // We do not check the cache here and instead check it in downloadImageWithURL to avoid checking the cache twice.
-  // If we're targeting the main queue and we're on the main thread, complete immediately.
-  if (ASDisplayNodeThreadIsMain() && callbackQueue == dispatch_get_main_queue()) {
-    completion(nil);
-  } else {
-    dispatch_async(callbackQueue, ^{
-      completion(nil);
-    });
-  }
+  [[self sharedPINRemoteImageManager] imageFromCacheWithURL:URL processorKey:nil options:PINRemoteImageManagerDownloadOptionsSkipDecode completion:^(PINRemoteImageManagerResult * _Nonnull result) {
+    [ASPINRemoteImageDownloader _performWithCallbackQueue:callbackQueue work:^{
+#if PIN_ANIMATED_AVAILABLE
+      if (result.alternativeRepresentation) {
+        completion(result.alternativeRepresentation);
+      } else {
+        completion(result.image);
+      }
+#else
+      completion(result.image);
+#endif
+    }];
+  }];
 }
 
 - (void)clearFetchedImageFromCacheWithURL:(NSURL *)URL
@@ -205,43 +235,38 @@ static ASPINRemoteImageDownloader *sharedDownloader = nil;
                    downloadProgress:(ASImageDownloaderProgress)downloadProgress
                          completion:(ASImageDownloaderCompletion)completion;
 {
-  return [[self sharedPINRemoteImageManager] downloadImageWithURL:URL options:PINRemoteImageManagerDownloadOptionsSkipDecode progressDownload:^(int64_t completedBytes, int64_t totalBytes) {
+  PINRemoteImageManagerProgressDownload progressDownload = ^(int64_t completedBytes, int64_t totalBytes) {
     if (downloadProgress == nil) { return; }
 
-    /// If we're targeting the main queue and we're on the main thread, call immediately.
-    if (ASDisplayNodeThreadIsMain() && callbackQueue == dispatch_get_main_queue()) {
+    [ASPINRemoteImageDownloader _performWithCallbackQueue:callbackQueue work:^{
       downloadProgress(completedBytes / (CGFloat)totalBytes);
-    } else {
-      dispatch_async(callbackQueue, ^{
-        downloadProgress(completedBytes / (CGFloat)totalBytes);
-      });
-    }
-  } completion:^(PINRemoteImageManagerResult * _Nonnull result) {
-    /// If we're targeting the main queue and we're on the main thread, complete immediately.
-    if (ASDisplayNodeThreadIsMain() && callbackQueue == dispatch_get_main_queue()) {
+    }];
+  };
+
+  PINRemoteImageManagerImageCompletion imageCompletion = ^(PINRemoteImageManagerResult * _Nonnull result) {
+    [ASPINRemoteImageDownloader _performWithCallbackQueue:callbackQueue work:^{
 #if PIN_ANIMATED_AVAILABLE
       if (result.alternativeRepresentation) {
-        completion(result.alternativeRepresentation, result.error, result.UUID);
+        completion(result.alternativeRepresentation, result.error, result.UUID, result);
       } else {
-        completion(result.image, result.error, result.UUID);
+        completion(result.image, result.error, result.UUID, result);
       }
 #else
-      completion(result.image, result.error, result.UUID);
+      completion(result.image, result.error, result.UUID, result);
 #endif
-    } else {
-      dispatch_async(callbackQueue, ^{
-#if PIN_ANIMATED_AVAILABLE
-        if (result.alternativeRepresentation) {
-          completion(result.alternativeRepresentation, result.error, result.UUID);
-        } else {
-          completion(result.image, result.error, result.UUID);
-        }
-#else
-        completion(result.image, result.error, result.UUID);
-#endif
-      });
-    }
-  }];
+    }];
+  };
+
+  // add "IgnoreCache" option since we have a caching API so we already checked it, not worth checking again.
+  // PINRemoteImage is responsible for coalescing downloads, and even if it wasn't, the tiny probability of
+  // extra downloads isn't worth the effort of rechecking caches every single time. In order to provide
+  // feedback to the consumer about whether images are cached, we can't simply make the cache a no-op and
+  // check the cache as part of this download.
+  return [[self sharedPINRemoteImageManager] downloadImageWithURL:URL
+                                                          options:PINRemoteImageManagerDownloadOptionsSkipDecode | PINRemoteImageManagerDownloadOptionsIgnoreCache
+                                                    progressImage:nil
+                                                 progressDownload:progressDownload
+                                                       completion:imageCompletion];
 }
 
 - (void)cancelImageDownloadForIdentifier:(id)downloadIdentifier
@@ -300,9 +325,41 @@ static ASPINRemoteImageDownloader *sharedDownloader = nil;
   if ([data pin_isGIF]) {
     return data;
   }
+#if PIN_WEBP_AVAILABLE
+  else if ([data pin_isAnimatedWebP]) {
+      return data;
+  }
+#endif
+    
 #endif
   return nil;
 }
 
+#pragma mark - Private
+
+/**
+ * If on main thread and queue is main, perform now.
+ * If queue is nil, assert and perform now.
+ * Otherwise, dispatch async to queue.
+ */
++ (void)_performWithCallbackQueue:(dispatch_queue_t)queue work:(void (^)(void))work
+{
+  if (work == nil) {
+    // No need to assert here, really. We aren't expecting any feedback from this method.
+    return;
+  }
+
+  if (ASDisplayNodeThreadIsMain() && queue == dispatch_get_main_queue()) {
+    work();
+  } else if (queue == nil) {
+    ASDisplayNodeFailAssert(@"Callback queue should not be nil.");
+    work();
+  } else {
+    dispatch_async(queue, work);
+  }
+}
+
 @end
+#endif
+
 #endif

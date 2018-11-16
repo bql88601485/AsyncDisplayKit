@@ -1,16 +1,16 @@
 //
 //  ASDisplayNodeTestsHelper.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import "ASDisplayNodeTestsHelper.h"
 #import <AsyncDisplayKit/ASDisplayNode.h>
 #import <AsyncDisplayKit/ASLayout.h>
+#import <AsyncDisplayKit/ASRunLoopQueue.h>
 
 #import <QuartzCore/QuartzCore.h>
 
@@ -54,4 +54,16 @@ void ASDisplayNodeSizeToFitSizeRange(ASDisplayNode *node, ASSizeRange sizeRange)
 {
   CGSize sizeThatFits = [node layoutThatFits:sizeRange].size;
   node.bounds = (CGRect){.origin = CGPointZero, .size = sizeThatFits};
+}
+
+void ASCATransactionQueueWait(ASCATransactionQueue *q)
+{
+  if (!q) { q = ASCATransactionQueue.sharedQueue; }
+  NSDate *date = [NSDate dateWithTimeIntervalSinceNow:1];
+  BOOL whileResult = YES;
+  while ([date timeIntervalSinceNow] > 0 &&
+         (whileResult = ![q isEmpty])) {
+    [[NSRunLoop currentRunLoop] runUntilDate:
+     [NSDate dateWithTimeIntervalSinceNow:0.01]];
+  }
 }

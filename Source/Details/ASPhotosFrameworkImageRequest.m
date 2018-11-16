@@ -1,16 +1,16 @@
 //
 //  ASPhotosFrameworkImageRequest.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Adlai Holler on 9/25/15.
-//
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASPhotosFrameworkImageRequest.h>
+
+#if AS_USE_PHOTOS
+
 #import <AsyncDisplayKit/ASBaseDefines.h>
 
 NSString *const ASPhotosURLScheme = @"ph";
@@ -39,13 +39,6 @@ static NSString *const _ASPhotosURLQueryKeyCropWidth = @"crop_w";
 static NSString *const _ASPhotosURLQueryKeyCropHeight = @"crop_h";
 
 @implementation ASPhotosFrameworkImageRequest
-
-- (instancetype)init
-{
-  ASDISPLAYNODE_NOT_DESIGNATED_INITIALIZER();
-  self = [self initWithAssetIdentifier:@""];
-  return nil;
-}
 
 - (instancetype)initWithAssetIdentifier:(NSString *)assetIdentifier
 {
@@ -162,3 +155,5 @@ static NSString *const _ASPhotosURLQueryKeyCropHeight = @"crop_h";
 }
 
 @end
+
+#endif // AS_USE_PHOTOS

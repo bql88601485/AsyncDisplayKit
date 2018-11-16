@@ -1,18 +1,10 @@
 //
 //  ViewController.m
-//  Sample
+//  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  FACEBOOK BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-//  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-//  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import "ViewController.h"
@@ -50,12 +42,12 @@ static const CGFloat kHorizontalSectionPadding = 10.0f;
   self = [super initWithNode:_collectionNode];
   
   if (self) {
-    
     self.title = @"Cat Deals";
   
     _collectionNode.dataSource = self;
     _collectionNode.delegate = self;
     _collectionNode.backgroundColor = [UIColor grayColor];
+    _collectionNode.accessibilityIdentifier = @"Cat deals list";
     
     ASRangeTuningParameters preloadTuning;
     preloadTuning.leadingBufferScreenfuls = 2;
@@ -84,11 +76,12 @@ static const CGFloat kHorizontalSectionPadding = 10.0f;
   [super viewDidLoad];
   
   // set any collectionView properties here (once the node's backing view is loaded)
-  _collectionNode.view.leadingScreensForBatching = 2;
+  _collectionNode.leadingScreensForBatching = 2;
   [self fetchMoreCatsWithCompletion:nil];
 }
 
-- (void)fetchMoreCatsWithCompletion:(void (^)(BOOL))completion {
+- (void)fetchMoreCatsWithCompletion:(void (^)(BOOL))completion
+{
   if (kSimulateWebResponse) {
     __weak typeof(self) weakSelf = self;
     void(^mockWebService)() = ^{
@@ -96,12 +89,10 @@ static const CGFloat kHorizontalSectionPadding = 10.0f;
       ViewController *strongSelf = weakSelf;
       if (strongSelf != nil)
       {
-        NSLog(@"ViewController is not nil");
         [strongSelf appendMoreItems:kBatchSize completion:completion];
-        NSLog(@"ViewController finished updating collectionView");
       }
       else {
-        NSLog(@"ViewController is nil - won't update collectionView");
+        NSLog(@"ViewController is nil - won't update collection");
       }
     };
     
@@ -111,18 +102,18 @@ static const CGFloat kHorizontalSectionPadding = 10.0f;
   }
 }
 
-- (void)appendMoreItems:(NSInteger)numberOfNewItems completion:(void (^)(BOOL))completion {
+- (void)appendMoreItems:(NSInteger)numberOfNewItems completion:(void (^)(BOOL))completion
+{
   NSArray *newData = [self getMoreData:numberOfNewItems];
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [_collectionNode performBatchAnimated:YES updates:^{
-      [_data addObjectsFromArray:newData];
-      NSArray *addedIndexPaths = [self indexPathsForObjects:newData];
-      [_collectionNode insertItemsAtIndexPaths:addedIndexPaths];
-    } completion:completion];
-  });
+  [_collectionNode performBatchAnimated:YES updates:^{
+    [_data addObjectsFromArray:newData];
+    NSArray *addedIndexPaths = [self indexPathsForObjects:newData];
+    [_collectionNode insertItemsAtIndexPaths:addedIndexPaths];
+  } completion:completion];
 }
 
-- (NSArray *)getMoreData:(NSInteger)count {
+- (NSArray *)getMoreData:(NSInteger)count
+{
   NSMutableArray *data = [NSMutableArray array];
   for (int i = 0; i < count; i++) {
     [data addObject:[ItemViewModel randomItem]];
@@ -130,7 +121,8 @@ static const CGFloat kHorizontalSectionPadding = 10.0f;
   return data;
 }
 
-- (NSArray *)indexPathsForObjects:(NSArray *)data {
+- (NSArray *)indexPathsForObjects:(NSArray *)data
+{
   NSMutableArray *indexPaths = [NSMutableArray array];
   NSInteger section = 0;
   for (ItemViewModel *viewModel in data) {
@@ -141,7 +133,8 @@ static const CGFloat kHorizontalSectionPadding = 10.0f;
   return indexPaths;
 }
 
-- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator {
+- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
+{
   [_collectionNode.view.collectionViewLayout invalidateLayout];
 }
 
@@ -154,10 +147,14 @@ static const CGFloat kHorizontalSectionPadding = 10.0f;
 
 - (ASCellNodeBlock)collectionNode:(ASCollectionNode *)collectionNode nodeBlockForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-  ItemViewModel *viewModel = _data[indexPath.item];
   return ^{
-    return [[ItemNode alloc] initWithViewModel:viewModel];
+    return [[ItemNode alloc] init];
   };
+}
+
+- (id)collectionNode:(ASCollectionNode *)collectionNode nodeModelForItemAtIndexPath:(NSIndexPath *)indexPath
+{
+  return _data[indexPath.item];
 }
 
 - (ASCellNode *)collectionNode:(ASCollectionNode *)collectionNode nodeForSupplementaryElementOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath
@@ -196,7 +193,6 @@ static const CGFloat kHorizontalSectionPadding = 10.0f;
 
 - (void)collectionNode:(ASCollectionNode *)collectionNode willBeginBatchFetchWithContext:(ASBatchContext *)context
 {
-  NSLog(@"fetch additional content");
   [self fetchMoreCatsWithCompletion:^(BOOL finished){
     [context completeBatchFetching:YES];
   }];

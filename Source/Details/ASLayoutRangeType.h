@@ -1,11 +1,10 @@
 //
 //  ASLayoutRangeType.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <Foundation/Foundation.h>
@@ -16,9 +15,9 @@ typedef struct {
   CGFloat trailingBufferScreenfuls;
 } ASRangeTuningParameters;
 
-FOUNDATION_EXPORT ASRangeTuningParameters const ASRangeTuningParametersZero;
+AS_EXTERN ASRangeTuningParameters const ASRangeTuningParametersZero;
 
-FOUNDATION_EXPORT BOOL ASRangeTuningParametersEqualToRangeTuningParameters(ASRangeTuningParameters lhs, ASRangeTuningParameters rhs);
+AS_EXTERN BOOL ASRangeTuningParametersEqualToRangeTuningParameters(ASRangeTuningParameters lhs, ASRangeTuningParameters rhs);
 
 /**
  * Each mode has a complete set of tuning parameters for range types.
@@ -67,6 +66,3 @@ typedef NS_ENUM(NSInteger, ASLayoutRangeType) {
 };
 
 static NSInteger const ASLayoutRangeTypeCount = 2;
-
-#define ASLayoutRangeTypeRender ASLayoutRangeTypeDisplay
-#define ASLayoutRangeTypeFetchData ASLayoutRangeTypePreload

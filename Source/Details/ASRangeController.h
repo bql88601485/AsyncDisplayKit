@@ -1,12 +1,13 @@
 //
 //  ASRangeController.h
-//  AsyncDisplayKit
+//  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
+
+#ifndef MINIMAL_ASDK
 
 #import <Foundation/Foundation.h>
 #import <AsyncDisplayKit/ASDisplayNode.h>
@@ -58,6 +59,11 @@ AS_SUBCLASSING_RESTRICTED
 - (void)updateIfNeeded;
 
 /**
+ * Force update the ranges immediately.
+ */
+- (void)updateRanges;
+
+/**
  * Add the sized node for `indexPath` as a subview of `contentView`.
  *
  * @param contentView UIView to add a (sized) node's view to.
@@ -81,7 +87,7 @@ AS_SUBCLASSING_RESTRICTED
  * Used primarily for providing the current range of index paths and identifying when the
  * range controller should invalidate its range.
  */
-@property (nonatomic, strong) id<ASLayoutController> layoutController;
+@property (nonatomic) id<ASLayoutController> layoutController;
 
 /**
  * The underlying data source for the range controller
@@ -92,6 +98,11 @@ AS_SUBCLASSING_RESTRICTED
  * Delegate for handling range controller events. Must not be nil.
  */
 @property (nonatomic, weak) id<ASRangeControllerDelegate> delegate;
+
+/**
+ * Property that indicates whether the scroll view for this range controller has ever changed its contentOffset.
+ */
+@property (nonatomic) BOOL contentHasBeenScrolled;
 
 @end
 
@@ -107,9 +118,9 @@ AS_SUBCLASSING_RESTRICTED
 /**
  * @param rangeController Sender.
  *
- * @return an array of elements corresponding to the data currently visible onscreen (i.e., the visible range).
+ * @return an table of elements corresponding to the data currently visible onscreen (i.e., the visible range).
  */
-- (NSArray<ASCollectionElement *> *)visibleElementsForRangeController:(ASRangeController *)rangeController;
+- (nullable NSHashTable<ASCollectionElement *> *)visibleElementsForRangeController:(ASRangeController *)rangeController;
 
 /**
  * @param rangeController Sender.
@@ -139,18 +150,17 @@ AS_SUBCLASSING_RESTRICTED
 @protocol ASRangeControllerDelegate <NSObject>
 
 /**
- * Called before updating with given change set.
+ * Called to update with given change set.
  *
  * @param changeSet The change set that includes all updates
- */
-- (void)rangeController:(ASRangeController *)rangeController willUpdateWithChangeSet:(_ASHierarchyChangeSet *)changeSet;
-
-/**
- * Called after updating with given change set.
  *
- * @param changeSet The change set that includes all updates
+ * @param updates The block that performs relevant data updates.
+ *
+ * @discussion The updates block must always be executed or the data controller will get into a bad state.
+ * It should be called at the time the backing view is ready to process the updates,
+ * i.e inside the updates block of `-[UICollectionView performBatchUpdates:completion:] or after calling `-[UITableView beginUpdates]`.
  */
-- (void)rangeController:(ASRangeController *)rangeController didUpdateWithChangeSet:(_ASHierarchyChangeSet *)changeSet;
+- (void)rangeController:(ASRangeController *)rangeController updateWithChangeSet:(_ASHierarchyChangeSet *)changeSet updates:(dispatch_block_t)updates;
 
 @end
 
@@ -190,3 +200,5 @@ AS_SUBCLASSING_RESTRICTED
 @end
 
 NS_ASSUME_NONNULL_END
+
+#endif

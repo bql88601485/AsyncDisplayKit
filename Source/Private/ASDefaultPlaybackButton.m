@@ -1,13 +1,10 @@
 //
 //  ASDefaultPlaybackButton.m
-//  AsyncDisplayKit
+//  Texture
 //
-//  Created by Erekle on 5/14/16.
-//
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the root directory of this source tree. An additional grant
-//  of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASDefaultPlaybackButton.h>
@@ -41,15 +38,15 @@
   }
 }
 
-- (nullable id<NSObject>)drawParametersForAsyncLayer:(_ASDisplayLayer *)layer
+- (nullable NSDictionary *)drawParametersForAsyncLayer:(_ASDisplayLayer *)layer
 {
   return @{
-    @"buttonType" : [NSNumber numberWithInt:_buttonType],
+    @"buttonType" : @(self.buttonType),
     @"color" : self.tintColor
   };
 }
 
-+ (void)drawRect:(CGRect)bounds withParameters:(id<NSObject>)parameters isCancelled:(asdisplaynode_iscancelled_block_t)isCancelledBlock isRasterizing:(BOOL)isRasterizing
++ (void)drawRect:(CGRect)bounds withParameters:(NSDictionary *)parameters isCancelled:(asdisplaynode_iscancelled_block_t)isCancelledBlock isRasterizing:(BOOL)isRasterizing
 {
   ASDefaultPlaybackButtonType buttonType = (ASDefaultPlaybackButtonType)[parameters[@"buttonType"] intValue];
   UIColor *color = parameters[@"color"];
